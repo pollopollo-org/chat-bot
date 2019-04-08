@@ -1,0 +1,29 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "baseUrl": "src",
+        "outDir": "lib",
+        "lib": [
+            "es6",
+            "esnext",
+            "dom",
+        ],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "esnext",
+        "alwaysStrict": true,
+        "allowSyntheticDefaultImports": true,
+        "declaration": true,
+        "declarationDir": "lib",
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
+        "removeComments": true,
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "strictNullChecks": true,
+    },
+    "exclude": [
+        "lib",
+        "node_modules"
+    ]
+}
