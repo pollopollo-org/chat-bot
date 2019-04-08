@@ -22,7 +22,7 @@ export async function returnAmountOfProducers(returnAddress: string) {
         const data = await response.text();
 
         if (response.ok) {
-            device.sendMessageToDevice(returnAddress, 'text', `Current amount of active producers: ${data}`);
+            device.sendMessageToDevice(returnAddress, 'text', `Current amount of producers: ${data}`);
         } else {
             returnApiError(returnAddress, response.status, endPoint.errors);
         }
@@ -49,7 +49,7 @@ export async function returnAmountOfReceivers(returnAddress: string) {
         const data = await response.text();
 
         if (response.ok) {
-            device.sendMessageToDevice(returnAddress, 'text', `Current amount of active receivers: ${data}`);
+            device.sendMessageToDevice(returnAddress, 'text', `Current amount of receivers: ${data}`);
         } else {
             returnApiError(returnAddress, response.status, endPoint.errors);
         }
