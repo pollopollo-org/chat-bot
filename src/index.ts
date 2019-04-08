@@ -1,6 +1,9 @@
 const headlessWallet = require('headless-obyte');
 import eventBus = require('ocore/event_bus.js');
 import device = require('ocore/device.js');
+
+import "./listener";
+
 import { returnAmountOfProducers } from './requests/getCounts';
 
 /**
