@@ -3,7 +3,6 @@ import fetch from "node-fetch";
 
 import { apis } from '../config/apis.js';
 import { returnApiError } from '../utils/returnApiError';
-import { ProductModelData } from '../typings';
 
 /**
  * Response method that'll return the amount of producers to the user requesting
@@ -11,21 +10,75 @@ import { ProductModelData } from '../typings';
  */
 export async function returnAmountOfProducers(returnAddress: string) {
     try {
-        const endPoint = apis.products.getBatch.path.replace("{start}", String(0)).replace("{end}", String(20));
+        const endPoint = apis.producer.count;
 
         // Fetch count from backend
-        const response = await fetch(endPoint, {
-            method: "GET",
+        const response = await fetch(endPoint.path, {
+            method: endPoint.method,
             headers: {
                 "Content-Type": "application/json",
             }
         });
-        const json: { count: number; list: ProductModelData[] } = await response.json();
+        const data = await response.text();
 
         if (response.ok) {
-            device.sendMessageToDevice(returnAddress, 'text', `Current amount of active products: ${json.count}`);
+            device.sendMessageToDevice(returnAddress, 'text', `Current amount of active producers: ${data}`);
         } else {
-            returnApiError(returnAddress, response.status, apis.products.getBatch.errors);
+            returnApiError(returnAddress, response.status, endPoint.errors);
+        }
+    } catch (err) {
+        device.sendMessageToDevice(returnAddress, 'text', "Something went wrong while processing your request.");
+    }
+}
+
+/**
+ * Response method that'll return the amount of producers to the user requesting
+ * it.
+ */
+export async function returnAmountOfReceivers(returnAddress: string) {
+    try {
+        const endPoint = apis.receivers.count;
+
+        // Fetch count from backend
+        const response = await fetch(endPoint.path, {
+            method: endPoint.method,
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+        const data = await response.text();
+
+        if (response.ok) {
+            device.sendMessageToDevice(returnAddress, 'text', `Current amount of active receivers: ${data}`);
+        } else {
+            returnApiError(returnAddress, response.status, endPoint.errors);
+        }
+    } catch (err) {
+        device.sendMessageToDevice(returnAddress, 'text', "Something went wrong while processing your request.");
+    }
+}
+
+/**
+ * Response method that'll return the amount of producers to the user requesting
+ * it.
+ */
+export async function returnAmountOfProducts(returnAddress: string) {
+    try {
+        const endPoint = apis.products.count;
+
+        // Fetch count from backend
+        const response = await fetch(endPoint.path, {
+            method: endPoint.method,
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+        const data = await response.text();
+
+        if (response.ok) {
+            device.sendMessageToDevice(returnAddress, 'text', `Current amount of active products: ${data}`);
+        } else {
+            returnApiError(returnAddress, response.status, endPoint.errors);
         }
     } catch (err) {
         device.sendMessageToDevice(returnAddress, 'text', "Something went wrong while processing your request.");

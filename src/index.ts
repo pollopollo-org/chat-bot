@@ -4,7 +4,7 @@ import device = require('ocore/device.js');
 
 import "./listener";
 
-import { returnAmountOfProducers } from './requests/getCounts';
+import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from './requests/getCounts';
 
 /**
  * user sends message to the bot
@@ -14,11 +14,15 @@ eventBus.on('text', async(from_address: string, text: string) => {
 
     switch (parsedText) {
         case "producers":
-
+            returnAmountOfProducers(from_address);
             break;
 
         case "products":
-            returnAmountOfProducers(from_address);
+            returnAmountOfProducts(from_address);
+            break;
+
+        case "receivers":
+            returnAmountOfReceivers(from_address);
             break;
 
         default:
