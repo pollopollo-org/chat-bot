@@ -26,6 +26,6 @@ eventBus.on("text", async (fromAddress, message) => {
             break;
 
         default:
-            device.sendMessageToDevice(fromAddress, device.SendFormats.TEXT, "Unknown request.");
+            device.sendMessageToDevice(fromAddress, "text", "Unknown request.");
     }
 });
