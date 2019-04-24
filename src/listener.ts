@@ -12,7 +12,7 @@ const server = app.listen(port);
  * Ensure express server is gracefully terminated once the process is killed
  */
 function onShutDown() {
-    server.close()
+    server.close();
 }
 
 process.on("SIGTERM", onShutDown);
