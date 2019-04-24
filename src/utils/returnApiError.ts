@@ -12,7 +12,7 @@ export function returnApiError(returnAddress: string, statusCode: number, errors
     if (statusCode === 429) {
         device.sendMessageToDevice(
             returnAddress,
-            device.SendFormats.TEXT,
+            "text",
             "You've exceeded the rate limit. Please wait a while and then try again"
         );
 
@@ -23,7 +23,7 @@ export function returnApiError(returnAddress: string, statusCode: number, errors
     if (statusCode === 500) {
         device.sendMessageToDevice(
             returnAddress,
-            device.SendFormats.TEXT,
+            "text",
             "Something went wrong while trying to process your request. Please try again later."
         );
 
@@ -40,13 +40,13 @@ export function returnApiError(returnAddress: string, statusCode: number, errors
     // If we've specified an error message for the given error, then alert it
     // to the user!
     if (errorKey) {
-        device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, supportedErrors[errorKey]);
+        device.sendMessageToDevice(returnAddress, "text", supportedErrors[errorKey]);
     } else {
         // ... else, just indicate to the user that something went wrong while
         // processing the request.
         device.sendMessageToDevice(
             returnAddress,
-            device.SendFormats.TEXT,
+            "text",
             "Something went wrong while processing your request."
         );
     }
