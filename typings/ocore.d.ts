@@ -1,9 +1,5 @@
 declare module 'ocore/device.js' {
-    export enum SendFormats {
-        TEXT = "text",
-    }
-
-    export function sendMessageToDevice(returnAddress: string, format: SendFormats, message: unknown): void;
+    export function sendMessageToDevice(returnAddress: string, format: unknown, message: unknown): void;
 }
 
 declare module 'ocore/event_bus.js' {

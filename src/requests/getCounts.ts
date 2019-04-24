@@ -22,12 +22,12 @@ export async function returnAmountOfProducers(returnAddress: string) {
         const data = await response.text();
 
         if (response.ok) {
-            device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, `Current amount of producers: ${data}`);
+            device.sendMessageToDevice(returnAddress, "text", `Current amount of producers: ${data}`);
         } else {
             returnApiError(returnAddress, response.status, endPoint.errors);
         }
     } catch (err) {
-        device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, "Something went wrong while processing your request.");
+        device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
     }
 }
 
@@ -49,12 +49,12 @@ export async function returnAmountOfReceivers(returnAddress: string) {
         const data = await response.text();
 
         if (response.ok) {
-            device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, `Current amount of receivers: ${data}`);
+            device.sendMessageToDevice(returnAddress, "text", `Current amount of receivers: ${data}`);
         } else {
             returnApiError(returnAddress, response.status, endPoint.errors);
         }
     } catch (err) {
-        device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, "Something went wrong while processing your request.");
+        device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
     }
 }
 
@@ -76,11 +76,11 @@ export async function returnAmountOfProducts(returnAddress: string) {
         const data = await response.text();
 
         if (response.ok) {
-            device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, `Current amount of active products: ${data}`);
+            device.sendMessageToDevice(returnAddress, "text", `Current amount of active products: ${data}`);
         } else {
             returnApiError(returnAddress, response.status, endPoint.errors);
         }
     } catch (err) {
-        device.sendMessageToDevice(returnAddress, device.SendFormats.TEXT, "Something went wrong while processing your request.");
+        device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
     }
 }
