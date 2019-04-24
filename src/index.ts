@@ -1,31 +1,31 @@
-const headlessWallet = require('headless-obyte');
-import eventBus = require('ocore/event_bus.js');
-import device = require('ocore/device.js');
+const headlessWallet = require("headless-obyte");
+import device = require("ocore/device.js");
+import eventBus = require("ocore/event_bus.js");
 
 import "./listener";
 
-import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from './requests/getCounts';
+import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 
 /**
  * user sends message to the bot
  */
-eventBus.on('text', async(from_address: string, text: string) => {  
-    const parsedText = text.toLowerCase();     
+eventBus.on("text", async (fromAddress, message) => {
+    const parsedText = message.toLowerCase();
 
     switch (parsedText) {
         case "producers":
-            returnAmountOfProducers(from_address);
+            await returnAmountOfProducers(fromAddress);
             break;
 
         case "products":
-            returnAmountOfProducts(from_address);
+            await returnAmountOfProducts(fromAddress);
             break;
 
         case "receivers":
-            returnAmountOfReceivers(from_address);
+            await returnAmountOfReceivers(fromAddress);
             break;
 
         default:
-            device.sendMessageToDevice(from_address, "text", "Unknown request.");
+            device.sendMessageToDevice(fromAddress, device.SendFormats.TEXT, "Unknown request.");
     }
 });
