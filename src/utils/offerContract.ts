@@ -69,7 +69,7 @@ export function offerContract(donor: Participant, producer: Participant, bot: Pa
         },
 
         ifOk: (sharedAddress) => {
-            const arrPayments = [{ address: sharedAddress, amount: price, asset: conf.defaultAsset }];
+            const arrPayments = [{ address: sharedAddress, amount: price, asset: "base" }];
             const assocDefinitions = {};
             assocDefinitions[sharedAddress] = {
                 definition: contract,
