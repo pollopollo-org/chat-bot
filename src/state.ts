@@ -6,6 +6,7 @@ import network = require("ocore/network.js");
  * on reboot
  */
 export const state = {
+    applicationId: "",
     rates: network.exchangeRates,
     bot: {
         deviceAddress: "",

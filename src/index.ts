@@ -6,6 +6,8 @@ import { state } from "./state";
 
 import "./listener";
 
+import { updateApplicationToPending } from "./requests/requests";
+
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 
 /**
@@ -88,6 +90,9 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
+        case "contract-test":
+
+            break;
 
         default:
             device.sendMessageToDevice(
@@ -97,4 +102,11 @@ eventBus.on("text", async (fromAddress, message) => {
                 "'insert my address'. Make sure to use a single address wallet"
             );
     }
+});
+
+/**
+ * Event send once transactions become stable
+ */
+eventBus.on("my_transactions_became_stable", async (arrUnits) => {
+    await updateApplicationToPending(state.applicationId);
 });
