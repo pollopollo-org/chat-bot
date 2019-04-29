@@ -16,7 +16,7 @@ export async function returnAmountOfProducers(returnAddress: string) {
         const response = await fetch(endPoint.path, {
             method: endPoint.method,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json" 
             }
         });
         const data = await response.text();
@@ -57,7 +57,7 @@ export async function returnAmountOfReceivers(returnAddress: string) {
         device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
     }
 }
-
+// trying out pushing
 /**
  * Response method that'll return the amount of producers to the user requesting
  * it.
