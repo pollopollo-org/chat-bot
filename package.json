@@ -7,8 +7,7 @@
     "start": "node --max-old-space-size=4096 lib/index.js",
     "documentation": "rm -rf documentation && typedoc --out ./documentation --tsconfig tsconfig.json --hideGenerator --name PolloPolloChatBot",
     "lint": "tslint --project '.' --format stylish",
-    "compile": "rm -rf lib && tsc && yarn lint",
-    "compileWindows": "rm -rf lib && tsc && yarn lint && copy conf.js ./lib/conf.js"
+    "compile": "rm -rf lib && tsc && yarn lint && copyfiles conf.js ./lib"
   },
   "license": "ISC",
   "dependencies": {
@@ -22,6 +21,7 @@
     "@types/node": "^11.13.7",
     "@types/node-fetch": "^2.3.2",
     "chalk": "^2.4.2",
+    "copyfiles": "^2.1.0",
     "husky": "^1.3.1",
     "tslint": "^5.16.0",
     "tslint-microsoft-contrib": "^6.1.1",
