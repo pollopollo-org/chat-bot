@@ -4,4 +4,14 @@ declare module 'ocore/device.js' {
 
 declare module 'ocore/event_bus.js' {
     export function on(method: "text", callback: (fromAddress: string, message: string) => void);
+    export function on(method: "rates_updated", callback: (exchangeRates: any) => void);
+}
+
+type callbacks = {
+    ifError: (err: any) => void;
+    ifOk: (shared_address: string) => void;
+}
+
+declare module 'ocore/wallet_defined_by_addresses.js' {
+    export function createNewSharedAddress(arrDefinition: any[], assocSignersByPath: { [key: string]: any }, callbacks: callbacks);
 }
