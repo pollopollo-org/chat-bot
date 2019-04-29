@@ -10,5 +10,6 @@ eventBus.on("rates_updated", () => {
  * on reboot
  */
 export const state = {
+    applicationId: "",
     rates: network.exchangeRates
 };

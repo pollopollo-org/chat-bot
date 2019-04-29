@@ -31,5 +31,14 @@ export const apis = {
                 404: "No receivers found."
             }
         }
+    },
+    applications: {
+        updateToPending: {
+            path: `${basePath}/applications/updatetopending/{applicationId}`,
+            method: "PUT",
+            errors: {
+                404: "Application not found."
+            }
+        }
     }
 };

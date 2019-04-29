@@ -5,6 +5,7 @@ declare module 'ocore/device.js' {
 declare module 'ocore/event_bus.js' {
     export function on(method: "text", callback: (fromAddress: string, message: string) => void);
     export function on(method: "rates_updated", callback: (exchangeRates: any) => void);
+    export function on(method: "my_transactions_became_stable", callback: (arrUnits: []) => void);
 }
 
 type callbacks = {

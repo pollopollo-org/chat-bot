@@ -3,6 +3,8 @@ import conf = require("ocore/conf");
 import device = require("ocore/device.js");
 import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses.js");
 
+import { state } from "../state";
+
 export type Participant = {
     /**
      * Specifies the address to the wallet used in relation to the payment of the
@@ -79,6 +81,8 @@ export function offerContract(donor: Participant, producer: Participant, bot: Pa
             const paymentRequestCode = `payment: ${paymentJsonBase64}`;
             const paymentRequestText = `[your share of payment to the contract](${paymentRequestCode})`;
             device.sendMessageToDevice(donor.deviceAddress, "text", paymentRequestText);
+
+            state.applicationId = applicationId;
         }
     });
 }

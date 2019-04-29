@@ -4,6 +4,9 @@ import eventBus = require("ocore/event_bus.js");
 
 import "./listener";
 
+import { updateApplicationToPending } from "./requests/requests";
+import { state } from "./state";
+
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 
 /**
@@ -24,8 +27,18 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
+        case "contract-test":
+
+            break;
 
         default:
             device.sendMessageToDevice(fromAddress, "text", "Unknown request.");
     }
+});
+
+/**
+ * Event send once transactions become stable
+ */
+eventBus.on("my_transactions_became_stable", async (arrUnits) => {
+    await updateApplicationToPending(state.applicationId);
 });
