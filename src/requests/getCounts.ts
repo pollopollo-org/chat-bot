@@ -57,7 +57,7 @@ export async function returnAmountOfReceivers(returnAddress: string) {
         device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
     }
 }
-// trying out pushing
+
 /**
  * Response method that'll return the amount of producers to the user requesting
  * it.
