@@ -24,18 +24,35 @@ eventBus.on("headless_wallet_ready", () => {
  * to the associated PolloPollo user, based on the pairing secret.
  */
 eventBus.on("paired", async (fromAddress, pairingSecret) => {
-    // Associate pairingSecret (and hence user) with wallet address, i.e.
-    // do a call to the backend
+    // In case the pairingSecret can be parsed as an integer, that means we're
+    // dealing with a donor
+    if (Number.isNaN(parseInt(pairingSecret, undefined))) {
+        device.sendMessageToDevice(
+            fromAddress,
+            "text",
+            "Am doing something for donor :-))"
+        );
+    } else {
+        // Associate pairingSecret (and hence user) with wallet address, i.e.
+        // do a call to the backend
 
+        // ... else we're dealing with a producer that attempts to link his wallet
+        // with an account.
+        device.sendMessageToDevice(
+            fromAddress,
+            "text",
+            "Your device has now been paired with your PolloPollo account, and now " +
+            "we just need your wallet address to finish the authentication."
+        );
+    }
+
+    // Prompt user to add wallet address
     device.sendMessageToDevice(
         fromAddress,
         "text",
-        "Your device has now been paired with your PolloPollo account, and now " +
-        "we just need your wallet address to finish the authentication. " +
-        "Please send your wallet address by clicking on the following link."
+        "Please insert your wallet address by clicking (···) and chose " +
+        "'insert my address'. Make sure to use a single address wallet"
     );
-
-    // Send link
 });
 
 /**
@@ -45,7 +62,8 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
 eventBus.on("text", async (fromAddress, message) => {
     const parsedText = message.toLowerCase();
 
-    if (validationUtils.isValidAddress(message.toUpperCase())) {
+    // tslint:disable-next-line newline-per-chained-call
+    if (validationUtils.isValidAddress(message.trim().toUpperCase())) {
         // Send address (message) and fromAddress to backend so that they can be
         // associated
 
@@ -72,6 +90,11 @@ eventBus.on("text", async (fromAddress, message) => {
             break;
 
         default:
-            device.sendMessageToDevice(fromAddress, "text", "Unknown request.");
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                "Your message was not understood. Please insert your wallet address by clicking (···) and chose " +
+                "'insert my address'. Make sure to use a single address wallet"
+            );
     }
 });
