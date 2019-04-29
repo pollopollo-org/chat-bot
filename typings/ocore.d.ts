@@ -19,3 +19,14 @@ type callbacks = {
 declare module 'ocore/wallet_defined_by_addresses.js' {
     export function createNewSharedAddress(arrDefinition: any[], assocSignersByPath: { [key: string]: any }, callbacks: callbacks);
 }
+
+declare module 'ocore/network.js' {
+    export const exchangeRates: {
+        BTC_USD: number;
+        GBYTE_BTC: number;
+        GBYTE_USD: number;
+        GBB_GBYTE: number;
+        GBB_USD: number;
+        GBB_BTC: number;
+    }
+}
