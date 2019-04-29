@@ -5,9 +5,10 @@
   "main": "lib/index.js",
   "scripts": {
     "start": "node --max-old-space-size=4096 lib/index.js",
+    "dev": "yarn compile && yarn start",
     "documentation": "rm -rf documentation && typedoc --out ./documentation --tsconfig tsconfig.json --hideGenerator --name PolloPolloChatBot",
     "lint": "tslint --project tsconfig.json --config tslint.json --format stylish",
-    "compile": "rm -rf lib && tsc && yarn lint && copyfiles conf.js ./lib"
+    "compile": "rm -rf lib && tsc && yarn lint --fix && copyfiles conf.js ./lib && copyfiles package.json ./lib"
   },
   "license": "ISC",
   "dependencies": {

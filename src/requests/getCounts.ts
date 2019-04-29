@@ -16,7 +16,7 @@ export async function returnAmountOfProducers(returnAddress: string) {
         const response = await fetch(endPoint.path, {
             method: endPoint.method,
             headers: {
-                "Content-Type": "application/json" 
+                "Content-Type": "application/json"
             }
         });
         const data = await response.text();
