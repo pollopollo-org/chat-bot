@@ -22,6 +22,7 @@
         "no-require-imports": false,
         "no-import-side-effect": false,
         "no-relative-imports": false,
+        "linebreak-style": false,
         "no-var-requires": false,
         // We're going to slightly increase the allowed function body length, as
         // we're using styled jsx a lot of places (and such render methods can
