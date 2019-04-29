@@ -19,4 +19,3 @@ export const state = {
 eventBus.on("rates_updated", () => {
     state.rates = network.exchangeRates;
 });
-
