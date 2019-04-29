@@ -10,5 +10,9 @@ eventBus.on("rates_updated", () => {
  * on reboot
  */
 export const state = {
-    rates: network.exchangeRates
+    rates: network.exchangeRates,
+    bot: {
+        deviceAddress: "",
+        walletAddress: ""
+    }
 };

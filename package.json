@@ -4,8 +4,10 @@
   "description": "PolloPollo chat-bot used to integrate https://pollopollo.org with the Obyte technology",
   "main": "lib/index.js",
   "scripts": {
+    "kill": "ps aux | grep '[y]arn start' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[y]arn dev ' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[n]ode --max-old-space-size=4096' | awk '{print $2}' | xargs kill -9",
     "start": "node --max-old-space-size=4096 lib/index.js",
     "dev": "yarn compile && yarn start",
+    "devBash": "yarn kill && yarn dev",
     "documentation": "rimraf documentation && typedoc --out ./documentation --tsconfig tsconfig.json --hideGenerator --name PolloPolloChatBot",
     "lint": "tslint --project tsconfig.json --config tslint.json --format stylish",
     "compile": "rimraf lib && tsc && yarn lint --fix && copyfiles conf.js ./lib && copyfiles package.json ./lib"
