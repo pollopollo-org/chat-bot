@@ -1,8 +1,18 @@
 import fetch from "node-fetch";
 import device = require("ocore/device.js");
 
+import https = require("https");
+
 import { apis } from "../config/apis.js";
 import { returnApiError } from "../utils/returnApiError";
+
+const agent = new https.Agent({
+    rejectUnauthorized: false
+});
+
+// Add SSL certificate to allow requests between backend and chat-bot
+// tslint:disable-next-line: newline-per-chained-call
+require("https").globalAgent.options.ca = require("ssl-root-cas/latest").create();
 
 /**
  * Response method that'll return the amount of producers to the user requesting
@@ -71,7 +81,8 @@ export async function returnAmountOfProducts(returnAddress: string) {
             method: endPoint.method,
             headers: {
                 "Content-Type": "application/json"
-            }
+            },
+            agent
         });
         const data = await response.text();
 
@@ -79,8 +90,9 @@ export async function returnAmountOfProducts(returnAddress: string) {
             device.sendMessageToDevice(returnAddress, "text", `Current amount of active products: ${data}`);
         } else {
             returnApiError(returnAddress, response.status, endPoint.errors);
+            device.sendMessageToDevice(returnAddress, "text", response.statusText);
         }
     } catch (err) {
-        device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
+        device.sendMessageToDevice(returnAddress, "text", `Something went wrong while processing your request. ${err}`);
     }
 }

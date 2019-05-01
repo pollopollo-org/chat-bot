@@ -47,7 +47,7 @@ export function returnApiError(returnAddress: string, statusCode: number, errors
         device.sendMessageToDevice(
             returnAddress,
             "text",
-            "Something went wrong while processing your request."
+            `Something went wrong while processing your request. ${statusCode}`
         );
     }
 }

@@ -25,7 +25,7 @@ export type Participant = {
 export function offerContract(donor: Participant, producer: Participant, bot: Participant, price: number, applicationId: string) {
     const hasRecievedClause = ["in data feed", [
         [bot.walletAddress],
-        `${applicationId}-"unique-identifier"`,
+        `${applicationId}`,
         "=",
         "true"
     ]];
