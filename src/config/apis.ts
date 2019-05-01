@@ -1,4 +1,4 @@
-const basePath = "https://api.pollopollo.org/api";
+const basePath = "https://localhost:4001/api";
 
 export type Errors = {
     [key: number]: string;
@@ -6,6 +6,13 @@ export type Errors = {
 
 export const apis = {
     producer: {
+        setInformation: {
+            path: `${basePath}/users/wallet`,
+            method: "PUT",
+            errors: {
+                404: "Unable to set information since there wasn't found a related Producer on PolloPollo.org"
+            }
+        },
         count: {
             path: `${basePath}/users/countproducer`,
             method: "GET",

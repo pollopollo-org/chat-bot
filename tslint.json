@@ -13,6 +13,7 @@
         "use-simple-attributes": false,
         "no-string-based-set-timeout": false,
         "typedef": false,
+        "no-non-null-assertion": false,
         "no-suspicious-comment": false,
         "object-literal-sort-keys": false,
         "strict-boolean-expressions": false,

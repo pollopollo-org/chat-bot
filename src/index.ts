@@ -6,9 +6,14 @@ import { state } from "./state";
 
 import "./listener";
 
-import { updateApplicationToPending } from "./requests/requests";
+import { updateApplicationToPending, setProducerInformation } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
+
+/**
+ * Is used to temporarirly store (and pair) a device address to a pairing secret
+ */
+const pairingCache: Map<string, string> = new Map();
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
@@ -35,8 +40,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
             "Am doing something for donor :-))"
         );
     } else {
-        // Associate pairingSecret (and hence user) with wallet address, i.e.
-        // do a call to the backend
+        pairingCache.set(fromAddress, pairingSecret);
 
         // ... else we're dealing with a producer that attempts to link his wallet
         // with an account.
@@ -63,17 +67,29 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
  */
 eventBus.on("text", async (fromAddress, message) => {
     const parsedText = message.toLowerCase();
+    const walletAddress = message
+        .trim()
+        .toUpperCase();
 
     // tslint:disable-next-line newline-per-chained-call
-    if (validationUtils.isValidAddress(message.trim().toUpperCase())) {
-        // Send address (message) and fromAddress to backend so that they can be
-        // associated
-
-        device.sendMessageToDevice(
-            fromAddress,
-            "text",
-            "Your wallet has now been paired with your PolloPollo account, and you can now return to the webpage."
-        );
+    if (validationUtils.isValidAddress(walletAddress)) {
+        if (!pairingCache.has(fromAddress)) {
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                "Somehow we lost your device address in the registration process. " +
+                "Please go back to PolloPollo.org and try again."
+            );
+        } else {
+            // We're received all informatin we need about the producer, send
+            // the information to the backend!
+            const pairingSecret = pairingCache.get(fromAddress);
+            await setProducerInformation(
+                pairingSecret!,
+                walletAddress,
+                fromAddress
+            );
+        }
 
         return;
     }
