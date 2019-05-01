@@ -8,6 +8,7 @@ import "./listener";
 
 import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
+import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { donorCache, pairingCache } from "./utils/caches";
 
@@ -73,6 +74,9 @@ eventBus.on("text", async (fromAddress, message) => {
     // tslint:disable-next-line newline-per-chained-call
     if (validationUtils.isValidAddress(walletAddress)) {
         if (!pairingCache.has(fromAddress)) {
+            // We gotten the required information about a donor, log the event!
+            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: "temp" });
+
             device.sendMessageToDevice(
                 fromAddress,
                 "text",
@@ -120,6 +124,8 @@ eventBus.on("text", async (fromAddress, message) => {
  * Event send once transactions become stable
  */
 eventBus.on("my_transactions_became_stable", async (arrUnits) => {
+    // We cannot use state.applicationId btw, we need to extract that from arrUnits :-)
+    await logEvent(LoggableEvents.PAYMENT_BECAME_STABLE, { applicationId: "temp" });
 
     // Check if transactions match with the contract
 

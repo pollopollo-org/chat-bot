@@ -4,6 +4,7 @@ import device = require("ocore/device.js");
 import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses.js");
 
 import { state } from "../state";
+import { logEvent, LoggableEvents } from "./logEvent";
 
 export type Participant = {
     /**
@@ -64,11 +65,12 @@ export function offerContract(donor: Participant, producer: Participant, bot: Pa
     };
 
     walletDefinedByAddresses.createNewSharedAddress(contract, assocSignersByPath, {
-        ifError: (err) => {
-            console.log(err);
+        ifError: async (err) => {
+            await logEvent(LoggableEvents.FAILED_TO_OFFER_CONTRACT, { donor, producer, applicationId, price, error: err });
         },
 
-        ifOk: (sharedAddress) => {
+        ifOk: async (sharedAddress) => {
+            await logEvent(LoggableEvents.OFFERED_CONTRACT, { donor, producer, applicationId, price, sharedAddress });
             const arrPayments = [{ address: sharedAddress, amount: price, asset: "base" }];
             const assocDefinitions = {};
             assocDefinitions[sharedAddress] = {

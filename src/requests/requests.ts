@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import device = require("ocore/device.js");
 
+import { logEvent, LoggableEvents } from "../utils/logEvent.js";
 import { apis } from "../config/apis.js";
 import { returnApiError } from "../utils/returnApiError";
 
@@ -70,6 +71,7 @@ export async function setProducerInformation(
         });
 
         if (response.ok) {
+            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: deviceAddress, pairingSecret });
             device.sendMessageToDevice(
                 deviceAddress,
                 "text",
