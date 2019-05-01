@@ -16,6 +16,7 @@
   "dependencies": {
     "express": "^4.16.4",
     "headless-obyte": "git+https://github.com/byteball/headless-obyte.git",
+    "mariadb": "^2.0.3",
     "node-fetch": "^2.3.0",
     "ocore": "git+https://github.com/byteball/ocore.git",
     "ssl-root-cas": "^1.3.1"
