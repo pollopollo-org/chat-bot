@@ -9,11 +9,7 @@ import "./listener";
 import { setProducerInformation, updateApplicationToPending } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
-
-/**
- * Is used to temporarirly store (and pair) a device address to a pairing secret
- */
-const pairingCache: Map<string, string> = new Map();
+import { pairingCache, donorCache } from "./utils/caches";
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
@@ -34,12 +30,6 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
     // In case the pairingSecret can be parsed as an integer, that means we're
     // dealing with a donor
     if (Number.isNaN(parseInt(pairingSecret, undefined))) {
-        device.sendMessageToDevice(
-            fromAddress,
-            "text",
-            "Am doing something for donor :-))"
-        );
-    } else {
         pairingCache.set(fromAddress, pairingSecret);
 
         // ... else we're dealing with a producer that attempts to link his wallet
@@ -49,6 +39,15 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
             "text",
             "Your device has now been paired with your PolloPollo account, and now " +
             "we just need your wallet address to finish the authentication."
+        );
+    } else {
+        donorCache.set(pairingSecret, fromAddress);
+
+        device.sendMessageToDevice(
+            fromAddress,
+            "text",
+            "Your device has been paired and is ready to finalize the donation. All we need " +
+            "now is your wallet address to issue a donation contract."
         );
     }
 
