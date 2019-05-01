@@ -4,30 +4,37 @@ import device = require("ocore/device.js");
 import { apis } from "../config/apis.js";
 import { returnApiError } from "../utils/returnApiError";
 
+export enum ApplicationStatus {
+    OPEN,
+    LOCKED,
+    PENDING,
+    CLOSED,
+    ALL
+}
+
 /**
- * Response method that'll return the amount of producers to the user requesting
- * it.
+ * Request method that'll request the backend to update given application
+ * to pending
  */
 // tslint:disable-next-line export-name
-export async function updateApplicationToPending(returnAddress: string) {
+export async function updateApplicationToPending(applicationId: string) {
     try {
         const endPoint = apis.applications.updateToPending;
 
-        // Fetch count from backend
+        // Send request to backend
         const response = await fetch(endPoint.path, {
             method: endPoint.method,
             headers: {
                 "Content-Type": "application/json"
-            }
+            },
+            body: JSON.stringify({
+                applicationId: applicationId,
+                status: ApplicationStatus.PENDING
+            })
         });
 
-        if (response.ok) {
-            device.sendMessageToDevice(returnAddress, "text", `Donation fulfilled. Application is now pending.`);
-        } else {
-            returnApiError(returnAddress, response.status, endPoint.errors);
-        }
     } catch (err) {
-        device.sendMessageToDevice(returnAddress, "text", "Something went wrong while processing your request.");
+        // Catch error
     }
 }
 
