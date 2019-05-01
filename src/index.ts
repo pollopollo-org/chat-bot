@@ -9,7 +9,7 @@ import "./listener";
 import { setProducerInformation, updateApplicationToPending } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
-import { pairingCache, donorCache } from "./utils/caches";
+import { donorCache, pairingCache } from "./utils/caches";
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
