@@ -28,9 +28,7 @@ async function init() {
     let conn;
 
     try {
-        let resettedApplications = 0;
         conn = await pool.getConnection();
-        const now = new Date();
 
         // Start by retrieving all locked applicaitons
         const rows = await conn.query("SELECT * FROM Applications WHERE Status = 1");
@@ -42,7 +40,6 @@ async function init() {
             const isStale = Date.now() + 1000 * 60 * 60 > lastModified;
 
             if (isStale) {
-                resettedApplications++;
                 await = conn.query("UPDATE Applications SET Status = 0, LastModified = NOW() WHERE Id = ?", [application.Id]);
 
                 let message = `[${new Date().toUTCString()} - FOUND_STALE_APPLICATION] More than an hour has passed since `;
@@ -61,6 +58,7 @@ async function init() {
     } catch (err) {
         throw err;
     } finally {
+        // End the process after the job finishes
         if (conn) {
             conn.end();
         }
@@ -69,4 +67,5 @@ async function init() {
     }
 }
 
+// Bootstrap cron-job!
 init();
