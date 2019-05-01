@@ -8,9 +8,9 @@ import "./listener";
 
 import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
-import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { donorCache, pairingCache } from "./utils/caches";
+import { logEvent, LoggableEvents } from "./utils/logEvent";
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.

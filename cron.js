@@ -1,6 +1,13 @@
 const mariadb = require("mariadb");
 const dbData = require("./dbData");
 
+const fs = require("fs");
+const path = require("path");
+const lockfile = require("proper-lockfile");
+const util = require("util");
+const exists = util.promisify(fs.exists);
+const appendFile = util.promisify(fs.appendFile);
+const createFile = util.promisify(fs.writeFile);
 
 const pool = mariadb.createPool({
     host: dbData.host,
@@ -9,6 +16,8 @@ const pool = mariadb.createPool({
     database: dbData.database,
     connectionLimit: 5
 });
+
+const logFile = path.resolve("/home/pollopollo/.pollo_log");
 
 /**
  * Cron that is responsible for resetting all applicaitons that have been in the
@@ -35,6 +44,17 @@ async function init() {
             if (isStale) {
                 resettedApplications++;
                 await = conn.query("UPDATE Applications SET Status = 0, LastModified = NOW() WHERE Id = ?", [application.Id]);
+
+                let message = `[${new Date().toUTCString()} - FOUND_STALE_APPLICATION] More than an hour has passed since `;
+                message += `creation of contract to application with id '${application.Id}'. Reverting application to Open`;
+
+                if (await exists(logFile)) {
+                    const release = await lockfile.lock(logFile);
+                    await appendFile(logFile, `\n\n${message}`);
+                    await release();
+                } else {
+                    await createFile(logFile, message);
+                }
             }
         });
 

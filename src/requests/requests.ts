@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import device = require("ocore/device.js");
 
-import { logEvent, LoggableEvents } from "../utils/logEvent.js";
 import { apis } from "../config/apis.js";
+import { logEvent, LoggableEvents } from "../utils/logEvent.js";
 import { returnApiError } from "../utils/returnApiError";
 
 export enum ApplicationStatus {
