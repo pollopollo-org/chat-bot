@@ -6,7 +6,7 @@ import { state } from "./state";
 
 import "./listener";
 
-import { setProducerInformation, updateApplicationToPending } from "./requests/requests";
+import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { donorCache, pairingCache } from "./utils/caches";
@@ -124,5 +124,5 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
     // Check if transactions match with the contract
 
     // Request the backend to update application to pending
-    await updateApplicationToPending(state.applicationId);
+    await updateApplicationStatus(state.applicationId, ApplicationStatus.PENDING);
 });

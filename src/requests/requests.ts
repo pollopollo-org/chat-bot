@@ -14,10 +14,10 @@ export enum ApplicationStatus {
 
 /**
  * Request method that'll request the backend to update given application
- * to pending
+ * to given status
  */
 // tslint:disable-next-line export-name
-export async function updateApplicationToPending(applicationId: string) {
+export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus) {
     try {
         const endPoint = apis.applications.updateToPending;
 
@@ -29,9 +29,15 @@ export async function updateApplicationToPending(applicationId: string) {
             },
             body: JSON.stringify({
                 applicationId: applicationId,
-                status: ApplicationStatus.PENDING
+                status: status
             })
         });
+
+        if (response.ok) {
+            // Succeeded
+        } else {
+            // Something went wrong here, send failure message
+        }
 
     } catch (err) {
         // Catch error
