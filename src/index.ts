@@ -6,7 +6,7 @@ import { state } from "./state";
 
 import "./listener";
 
-import { updateApplicationToPending, setProducerInformation } from "./requests/requests";
+import { setProducerInformation, updateApplicationToPending } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 
