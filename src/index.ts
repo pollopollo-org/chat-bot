@@ -9,8 +9,9 @@ import "./listener";
 import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
-import { donorCache, pairingCache } from "./utils/caches";
+import { donorCache, pairingCache, applicationCache } from "./utils/caches";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
+import { offerContract } from "./utils/offerContract";
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
@@ -18,8 +19,9 @@ import { logEvent, LoggableEvents } from "./utils/logEvent";
 eventBus.on("headless_wallet_ready", () => {
     state.bot.deviceAddress = device.getMyDeviceAddress();
 
-    headlessWallet.issueOrSelectNextMainAddress((botAddress) => {
+    headlessWallet.issueOrSelectNextMainAddress(async (botAddress) => {
         state.bot.walletAddress = botAddress;
+        await logEvent(LoggableEvents.UNKNOWN, { error: botAddress });
     });
 });
 
@@ -43,6 +45,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
         );
     } else {
         donorCache.set(pairingSecret, fromAddress);
+        applicationCache.set(fromAddress, pairingSecret);
 
         device.sendMessageToDevice(
             fromAddress,
@@ -74,15 +77,26 @@ eventBus.on("text", async (fromAddress, message) => {
     // tslint:disable-next-line newline-per-chained-call
     if (validationUtils.isValidAddress(walletAddress)) {
         if (!pairingCache.has(fromAddress)) {
-            // We gotten the required information about a donor, log the event!
-            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: "temp" });
+            const applicationId = applicationCache.get(fromAddress);
 
-            device.sendMessageToDevice(
-                fromAddress,
-                "text",
-                "Somehow we lost your device address in the registration process. " +
-                "Please go back to PolloPollo.org and try again."
-            );
+            // If the application id couldn't be retreived as well, then something
+            // has went wrong somewhere in the process
+            if (!applicationId) {
+                await logEvent(LoggableEvents.UNKNOWN, { error: "Failed to retrieve either applicationId or pairingSecret from cache" });
+                device.sendMessageToDevice(
+                    fromAddress,
+                    "text",
+                    "Somehow we lost your device address in the registration process. " +
+                    "Please go back to PolloPollo.org and try again."
+                );
+
+                return;
+            }
+
+            // We gotten the required information about a donor, log the event!
+            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: applicationId });
+
+            // TODO: Fetch data from backend in order to enable offering of contract
         } else {
             // We're received all informatin we need about the producer, send
             // the information to the backend!

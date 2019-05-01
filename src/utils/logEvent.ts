@@ -14,7 +14,8 @@ export enum LoggableEvents {
     REGISTERED_USER,
     OFFERED_CONTRACT,
     FAILED_TO_OFFER_CONTRACT,
-    PAYMENT_BECAME_STABLE
+    PAYMENT_BECAME_STABLE,
+    UNKNOWN
 }
 
 /**
@@ -24,11 +25,15 @@ export enum LoggableEvents {
  * (In case they don't, please refer to the error messages they're used within.)
  */
 // tslint:disable completed-docs
+type withError = {
+    error?: string;
+}
+
 type RegisteredUserData = {
     wallet: string;
     device: string;
     pairingSecret: string;
-};
+} & withError;
 
 type ContractData = {
     applicationId: string;
@@ -36,14 +41,13 @@ type ContractData = {
     producer: Participant;
     sharedAddress: string;
     price: number;
-    error?: string;
-};
+} & withError;
 
 type PaymentStableData = {
     applicationId: string;
-};
+} & withError;
 
-type CombinedData = RegisteredUserData | ContractData | PaymentStableData;
+type CombinedData = RegisteredUserData | ContractData | PaymentStableData | withError;
 // tslint:enable completed-docs
 
 /**
@@ -93,7 +97,8 @@ export async function logEvent(evtType: LoggableEvents, data: CombinedData): Pro
             break;
 
         default:
-            errorMessage += "- UNKNOWN_EVENT] Something wasn't logged properly, please contact developers.";
+            errorMessage += "- UNKNOWN_EVENT] Something wasn't logged properly, please contact developers.\n";
+            errorMessage += `Potential error: ${data.error}`;
     }
 
     if (await exists(logFile)) {
