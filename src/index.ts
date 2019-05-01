@@ -90,9 +90,6 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
-        case "contract-test":
-
-            break;
 
         default:
             device.sendMessageToDevice(
@@ -108,5 +105,9 @@ eventBus.on("text", async (fromAddress, message) => {
  * Event send once transactions become stable
  */
 eventBus.on("my_transactions_became_stable", async (arrUnits) => {
+
+    // Check if transactions match with the contract
+
+    // Request the backend to update application to pending
     await updateApplicationToPending(state.applicationId);
 });

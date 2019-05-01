@@ -34,7 +34,7 @@ export const apis = {
     },
     applications: {
         updateToPending: {
-            path: `${basePath}/applications/updatetopending/{applicationId}`,
+            path: `${basePath}/applications`,
             method: "PUT",
             errors: {
                 404: "Application not found."
