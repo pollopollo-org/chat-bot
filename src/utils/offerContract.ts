@@ -39,11 +39,19 @@ export function offerContract(donor: Participant, producer: Participant, bot: Pa
         ]],
         ["and", [
             ["address", donor.walletAddress],
-            ["mci", ">", 1000 * 60 * 60 * 24 * 30]
+            ["in data feed", [
+                [bot.walletAddress],
+                `${applicationId}_donorClaims`,
+                "=",
+                "true"
+            ]]
         ]],
         ["and", [
             ["address", bot.walletAddress],
-            ["mci", ">", 1000 * 60 * 60 * 24 * 30 * 3]
+            ["in data feed", [
+                [bot.walletAddress],
+                `${applicationId}_chatbotClaims`
+            ]]
         ]]
     ]];
 
@@ -83,7 +91,7 @@ export function offerContract(donor: Participant, producer: Participant, bot: Pa
             const paymentJson = JSON.stringify(objPaymentRequest);
             const paymentJsonBase64 = new Buffer(paymentJson).toString("base64");
             const paymentRequestCode = `payment: ${paymentJsonBase64}`;
-            const paymentRequestText = `[your share of payment to the contract](${paymentRequestCode})`;
+            const paymentRequestText = `[Please pay your donation here](${paymentRequestCode})`;
             device.sendMessageToDevice(donor.deviceAddress, "text", paymentRequestText);
 
             state.applicationId = applicationId;

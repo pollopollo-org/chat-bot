@@ -1,4 +1,5 @@
 const headlessWallet = require("headless-obyte");
+import cron = require("node-cron");
 import device = require("ocore/device.js");
 import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
@@ -8,10 +9,15 @@ import "./listener";
 
 import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
+import { apis } from "./config/apis";
+import { checkContractDate } from "./utils/checkContractDate";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
+
+// Ensure that the bot checks once a day if any contracts have been expired.
+cron.schedule("* 0 * * *", checkContractDate);
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
@@ -99,7 +105,21 @@ eventBus.on("text", async (fromAddress, message) => {
             // We gotten the required information about a donor, log the event!
             await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: applicationId });
 
-            // TODO: Fetch data from backend in order to enable offering of contract
+            const endPoint = apis.applications.getContractData;
+            const request = await fetch(
+                endPoint.path.replace("{applicationId}", applicationId),
+                {
+                    method: endPoint.method
+                }
+            );
+            const contractData = await request.json();
+            offerContract(
+                { walletAddress: walletAddress, deviceAddress: fromAddress },
+                { walletAddress: contractData.producerWallet, deviceAddress: contractData.producerDevice },
+                { walletAddress: state.bot.walletAddress, deviceAddress: state.bot.deviceAddress },
+                contractData.price,
+                applicationId
+            );
         } else {
             // We're received all informatin we need about the producer, send
             // the information to the backend!
@@ -144,8 +164,13 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
     // We cannot use state.applicationId btw, we need to extract that from arrUnits :-)
     await logEvent(LoggableEvents.PAYMENT_BECAME_STABLE, { applicationId: "temp" });
 
+    // Set completed = 3 for application in Contracts DB
+
     // Check if transactions match with the contract
 
     // Request the backend to update application to pending
     await updateApplicationStatus(state.applicationId, ApplicationStatus.PENDING);
 });
+
+checkContractDate()
+    .catch(err => { console.error(err); });

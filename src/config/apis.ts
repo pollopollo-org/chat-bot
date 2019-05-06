@@ -46,6 +46,11 @@ export const apis = {
             errors: {
                 404: "Application not found."
             }
+        },
+        getContractData: {
+            path: `${basePath}/applications/contractinfo/{applicationId}`,
+            method: "GET",
+            errors: {}
         }
     }
 };

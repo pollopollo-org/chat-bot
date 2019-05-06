@@ -5,7 +5,7 @@ import { confirmReception } from "./utils/confirmReception";
 const app = express();
 const port = 8004;
 
-app.get("/confirm", (req, res) => {
+app.get("/postconfirmation", (req, res) => {
     const id = req.body.applicationId;
     confirmReception(id);
 

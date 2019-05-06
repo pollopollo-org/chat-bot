@@ -21,10 +21,10 @@ export async function storeContract(applicationId: number) {
 
         //Start by checking if the table is there and create if not
         const table = await connection.query("CREATE TABLE IF NOT EXISTS " +
-        "Contracts(ApplicationId INT REQUIRED, TimeStamp DATETIME REQUIRED)");
+            "Contracts(ApplicationId INT REQUIRED, TimeStamp DATETIME REQUIRED), Completed INT REQUIRED");
 
         //Insert the contract into DB
-        const insert = await connection.query("INSERT INTO Contracts VALUES (?, ?)", [applicationId, Date.now()]);
+        const insert = await connection.query("INSERT INTO Contracts VALUES (?, ?, ?)", [applicationId, Date.now(), 0]);
 
     } catch (err) {
         console.log(err);

@@ -17,6 +17,7 @@
     "express": "^4.16.4",
     "headless-obyte": "git+https://github.com/byteball/headless-obyte.git",
     "mariadb": "^2.0.3",
+    "node-cron": "^2.0.3",
     "node-fetch": "^2.3.0",
     "ocore": "git+https://github.com/byteball/ocore.git",
     "proper-lockfile": "^4.1.1",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/express": "^4.16.1",
     "@types/node": "^11.13.7",
+    "@types/node-cron": "^2.0.2",
     "@types/node-fetch": "^2.3.2",
     "@types/proper-lockfile": "^3.0.1",
     "chalk": "^2.4.2",

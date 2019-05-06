@@ -35,12 +35,12 @@ async function init() {
 
         // And then go through all applications and determine whether or not
         // they've went stale.
-        rows.forEach(application => {
-            const lastModified = new Date(application.TimeStamp);
+        rows.forEach(async (application) => {
+            const lastModified = new Date(application.LastModified).getTime();
             const isStale = Date.now() + 1000 * 60 * 60 > lastModified;
 
             if (isStale) {
-                await = conn.query("UPDATE Applications SET Status = 0, LastModified = NOW() WHERE Id = ?", [application.Id]);
+                await conn.query("UPDATE Applications SET Status = 0, LastModified = NOW() WHERE Id = ?", [application.Id]);
 
                 let message = `[${new Date().toUTCString()} - FOUND_STALE_APPLICATION] More than an hour has passed since `;
                 message += `creation of contract to application with id '${application.Id}'. Reverting application to Open`;
