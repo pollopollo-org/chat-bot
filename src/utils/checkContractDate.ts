@@ -1,3 +1,5 @@
+import { writeToDataFeed } from "./writeToDataFeed";
+
 const mariadb = require("mariadb");
 const dbData = require("./dbData");
 
@@ -33,11 +35,17 @@ export async function checkContractDate(applicationId: number) {
         });
 
         if (chatbotClaimsBytes) {
-            // Send shit to let chatbot know it can claim bytes
+            // Let chatbot know it can claim bytes
+            const datafeed = {};
+            datafeed[`${applicationId}_chatbotClaims`] = "true";
+            writeToDataFeed(datafeed);
         }
 
         if (donorClaimsBytes) {
-            // Send shit to let chatbot know donor can claim bytes
+            // Let chatbot know donor can claim bytes
+            const datafeed = {};
+            datafeed[`${applicationId}_donorClaims`] = "true";
+            writeToDataFeed(datafeed);
         }
     } catch (err) {
         console.log(err);
