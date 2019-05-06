@@ -1,11 +1,15 @@
 import express = require("express");
 import { state } from "./state";
+import { confirmReception } from "./utils/confirmReception";
 
 const app = express();
 const port = 8004;
 
-app.get("/bot/confirm", (req, res) => {
-    res.send("Hello world!");
+app.get("/confirm", (req, res) => {
+    const id = req.body.applicationId;
+    confirmReception(id);
+
+    res.sendStatus(200);
 });
 
 app.get("/createContract", (req, res) => {

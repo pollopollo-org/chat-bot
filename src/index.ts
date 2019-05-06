@@ -9,15 +9,18 @@ import "./listener";
 import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
-import { donorCache, pairingCache, applicationCache } from "./utils/caches";
+import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
  */
-eventBus.on("headless_wallet_ready", () => {
+eventBus.on("headless_wallet_ready", async () => {
     state.bot.deviceAddress = device.getMyDeviceAddress();
+    await logEvent(LoggableEvents.UNKNOWN, { error: "Wallet ready" });
+
+    device.sendMessageToDevice("026ZBBXLRUPGG2YG7E3HGWIW4XDHOCNGB", "text", "Whatwhat");
 
     headlessWallet.issueOrSelectNextMainAddress(async (botAddress) => {
         state.bot.walletAddress = botAddress;
@@ -51,7 +54,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
             fromAddress,
             "text",
             "Your device has been paired and is ready to finalize the donation. All we need " +
-            "now is your wallet address to issue a donation contract."
+            `now is your wallet address to issue a donation contract.${pairingSecret}`
         );
     }
 

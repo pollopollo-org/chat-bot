@@ -27,7 +27,7 @@ export enum LoggableEvents {
 // tslint:disable completed-docs
 type withError = {
     error?: string;
-}
+};
 
 type RegisteredUserData = {
     wallet: string;

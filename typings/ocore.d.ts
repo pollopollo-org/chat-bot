@@ -21,6 +21,8 @@ declare module 'ocore/wallet_defined_by_addresses.js' {
 }
 
 declare module 'ocore/network.js' {
+    export function broadcastJoint(obj: unknown);
+
     export const exchangeRates: {
         BTC_USD: number;
         GBYTE_BTC: number;
