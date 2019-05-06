@@ -5,6 +5,7 @@ import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses.js"
 
 import { state } from "../state";
 import { logEvent, LoggableEvents } from "./logEvent";
+import { storeContract } from "./storeContract";
 
 export type Participant = {
     /**
@@ -77,6 +78,7 @@ export function offerContract(donor: Participant, producer: Participant, bot: Pa
                 definition: contract,
                 signers: assocSignersByPath
             };
+            await storeContract(Number.parseInt(applicationId, 10));
             const objPaymentRequest = { payments: arrPayments, definitions: assocDefinitions };
             const paymentJson = JSON.stringify(objPaymentRequest);
             const paymentJsonBase64 = new Buffer(paymentJson).toString("base64");
