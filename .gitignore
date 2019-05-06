@@ -10,6 +10,7 @@
 /build
 /lib
 /documentation
+dbData.json
 
 # misc
 .DS_Store
