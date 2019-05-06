@@ -9,17 +9,22 @@ import "./listener";
 import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
-import { donorCache, pairingCache } from "./utils/caches";
+import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
+import { offerContract } from "./utils/offerContract";
 
 /**
  * As soon as the wallet is ready, extract its own wallet address.
  */
-eventBus.on("headless_wallet_ready", () => {
+eventBus.on("headless_wallet_ready", async () => {
     state.bot.deviceAddress = device.getMyDeviceAddress();
+    await logEvent(LoggableEvents.UNKNOWN, { error: "Wallet ready" });
 
-    headlessWallet.issueOrSelectNextMainAddress((botAddress) => {
+    device.sendMessageToDevice("026ZBBXLRUPGG2YG7E3HGWIW4XDHOCNGB", "text", "Whatwhat");
+
+    headlessWallet.issueOrSelectNextMainAddress(async (botAddress) => {
         state.bot.walletAddress = botAddress;
+        await logEvent(LoggableEvents.UNKNOWN, { error: botAddress });
     });
 });
 
@@ -43,12 +48,13 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
         );
     } else {
         donorCache.set(pairingSecret, fromAddress);
+        applicationCache.set(fromAddress, pairingSecret);
 
         device.sendMessageToDevice(
             fromAddress,
             "text",
             "Your device has been paired and is ready to finalize the donation. All we need " +
-            "now is your wallet address to issue a donation contract."
+            `now is your wallet address to issue a donation contract.${pairingSecret}`
         );
     }
 
@@ -74,15 +80,26 @@ eventBus.on("text", async (fromAddress, message) => {
     // tslint:disable-next-line newline-per-chained-call
     if (validationUtils.isValidAddress(walletAddress)) {
         if (!pairingCache.has(fromAddress)) {
-            // We gotten the required information about a donor, log the event!
-            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: "temp" });
+            const applicationId = applicationCache.get(fromAddress);
 
-            device.sendMessageToDevice(
-                fromAddress,
-                "text",
-                "Somehow we lost your device address in the registration process. " +
-                "Please go back to PolloPollo.org and try again."
-            );
+            // If the application id couldn't be retreived as well, then something
+            // has went wrong somewhere in the process
+            if (!applicationId) {
+                await logEvent(LoggableEvents.UNKNOWN, { error: "Failed to retrieve either applicationId or pairingSecret from cache" });
+                device.sendMessageToDevice(
+                    fromAddress,
+                    "text",
+                    "Somehow we lost your device address in the registration process. " +
+                    "Please go back to PolloPollo.org and try again."
+                );
+
+                return;
+            }
+
+            // We gotten the required information about a donor, log the event!
+            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: applicationId });
+
+            // TODO: Fetch data from backend in order to enable offering of contract
         } else {
             // We're received all informatin we need about the producer, send
             // the information to the backend!
