@@ -7,12 +7,12 @@ import { state } from "./state";
 
 import "./listener";
 
-import { ApplicationStatus, setProducerInformation, updateApplicationStatus } from "./requests/requests";
+import { ApplicationStatus, setProducerInformation, updateApplicationStatus, getContractData } from "./requests/requests";
 
 import { apis } from "./config/apis";
-import { checkContractDate } from "./utils/checkContractDate";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
+import { checkContractDate } from "./utils/checkContractDate";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 
@@ -25,8 +25,6 @@ cron.schedule("* 0 * * *", checkContractDate);
 eventBus.on("headless_wallet_ready", async () => {
     state.bot.deviceAddress = device.getMyDeviceAddress();
     await logEvent(LoggableEvents.UNKNOWN, { error: "Wallet ready" });
-
-    device.sendMessageToDevice("026ZBBXLRUPGG2YG7E3HGWIW4XDHOCNGB", "text", "Whatwhat");
 
     headlessWallet.issueOrSelectNextMainAddress(async (botAddress) => {
         state.bot.walletAddress = botAddress;
@@ -41,7 +39,8 @@ eventBus.on("headless_wallet_ready", async () => {
 eventBus.on("paired", async (fromAddress, pairingSecret) => {
     // In case the pairingSecret can be parsed as an integer, that means we're
     // dealing with a donor
-    if (Number.isNaN(parseInt(pairingSecret, undefined))) {
+    const asInt = parseInt(pairingSecret, undefined);
+    if (Number.isNaN(asInt) || `${asInt}`.length !== pairingSecret.length) {
         pairingCache.set(fromAddress, pairingSecret);
 
         // ... else we're dealing with a producer that attempts to link his wallet
@@ -60,7 +59,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
             fromAddress,
             "text",
             "Your device has been paired and is ready to finalize the donation. All we need " +
-            `now is your wallet address to issue a donation contract.${pairingSecret}`
+            `now is your wallet address to issue a donation contract.`
         );
     }
 
@@ -104,22 +103,17 @@ eventBus.on("text", async (fromAddress, message) => {
 
             // We gotten the required information about a donor, log the event!
             await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: applicationId });
+            const contractData = await getContractData(applicationId, fromAddress);
 
-            const endPoint = apis.applications.getContractData;
-            const request = await fetch(
-                endPoint.path.replace("{applicationId}", applicationId),
-                {
-                    method: endPoint.method
-                }
-            );
-            const contractData = await request.json();
-            offerContract(
-                { walletAddress: walletAddress, deviceAddress: fromAddress },
-                { walletAddress: contractData.producerWallet, deviceAddress: contractData.producerDevice },
-                { walletAddress: state.bot.walletAddress, deviceAddress: state.bot.deviceAddress },
-                contractData.price,
-                applicationId
-            );
+            if (contractData) {
+                offerContract(
+                    { walletAddress: walletAddress, deviceAddress: fromAddress },
+                    { walletAddress: contractData.producerWallet, deviceAddress: contractData.producerDevice },
+                    { walletAddress: state.bot.walletAddress, deviceAddress: state.bot.deviceAddress },
+                    contractData.price,
+                    applicationId
+                );
+            }
         } else {
             // We're received all informatin we need about the producer, send
             // the information to the backend!

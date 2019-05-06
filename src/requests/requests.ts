@@ -85,3 +85,35 @@ export async function setProducerInformation(
         device.sendMessageToDevice(deviceAddress, "text", "Something went wrong while processing your request.");
     }
 }
+
+/**
+ * Should be called once we're ready to store information about a
+ * producer in order to store it properly on the backend.
+ */
+// tslint:disable completed-docs
+export async function getContractData(applicationId: string, deviceAddress: string): Promise<{
+    producerWallet: string;
+    producerDevice: string;
+    price: number;
+} | void> {
+    try {
+        const endPoint = apis.applications.getContractData;
+
+        // Fetch count from backend
+        const response = await fetch(
+            endPoint.path.replace("{applicationId}", applicationId),
+            {
+                method: endPoint.method
+            }
+        );
+
+        if (response.ok) {
+            return await response.json();
+        } else {
+            returnApiError(deviceAddress, response.status, endPoint.errors);
+        }
+    } catch (err) {
+        device.sendMessageToDevice(deviceAddress, "text", "Something went wrong while processing your request.");
+    }
+}
+// tslint:enable completed-docs
