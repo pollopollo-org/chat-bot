@@ -1,4 +1,11 @@
-const basePath = "https://localhost:4001/api";
+const basePath = "http://localhost:4000/api";
+
+// tslint:disable completed-docs
+export type EndpointData = {
+    path: string;
+    method: string;
+    errors: Errors;
+};
 
 export type Errors = {
     [key: number]: string;

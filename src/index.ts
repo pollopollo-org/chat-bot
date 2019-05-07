@@ -1,35 +1,32 @@
 const headlessWallet = require("headless-obyte");
 import cron = require("node-cron");
+import db = require("ocore/db");
 import device = require("ocore/device.js");
 import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
-import { state } from "./state";
 
 import "./listener";
 
-import { ApplicationStatus, setProducerInformation, updateApplicationStatus, getContractData } from "./requests/requests";
+import { ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
-import { apis } from "./config/apis";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
-import { checkContractDate } from "./utils/checkContractDate";
+import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
-
-// Ensure that the bot checks once a day if any contracts have been expired.
-cron.schedule("* 0 * * *", checkContractDate);
+import { publishTimestamp } from "./utils/publishTimestamp";
+import { completeContract } from "./utils/storeContract";
 
 /**
- * As soon as the wallet is ready, extract its own wallet address.
+ * Setup cron-jobs etc. as soon as the bot is fully booted
  */
-eventBus.on("headless_wallet_ready", async () => {
-    state.bot.deviceAddress = device.getMyDeviceAddress();
-    await logEvent(LoggableEvents.UNKNOWN, { error: "Wallet ready" });
+eventBus.on("headless_wallet_ready", () => {
+    // Ensure that the bot checks once a day if any contracts have been expired.
+    cron.schedule("* 0 * * *", publishTimestamp);
+    headlessWallet.setupChatEventHandlers();
 
-    headlessWallet.issueOrSelectNextMainAddress(async (botAddress) => {
-        state.bot.walletAddress = botAddress;
-        await logEvent(LoggableEvents.UNKNOWN, { error: botAddress });
-    });
+    publishTimestamp()
+        .catch(err => { console.error(err); });
 });
 
 /**
@@ -90,7 +87,7 @@ eventBus.on("text", async (fromAddress, message) => {
             // If the application id couldn't be retreived as well, then something
             // has went wrong somewhere in the process
             if (!applicationId) {
-                await logEvent(LoggableEvents.UNKNOWN, { error: "Failed to retrieve either applicationId or pairingSecret from cache" });
+                logEvent(LoggableEvents.UNKNOWN, { error: "Failed to retrieve either applicationId or pairingSecret from cache" });
                 device.sendMessageToDevice(
                     fromAddress,
                     "text",
@@ -101,15 +98,16 @@ eventBus.on("text", async (fromAddress, message) => {
                 return;
             }
 
+            applicationCache.delete(fromAddress);
+
             // We gotten the required information about a donor, log the event!
-            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: applicationId });
+            logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: fromAddress, pairingSecret: applicationId });
             const contractData = await getContractData(applicationId, fromAddress);
 
             if (contractData) {
                 offerContract(
                     { walletAddress: walletAddress, deviceAddress: fromAddress },
                     { walletAddress: contractData.producerWallet, deviceAddress: contractData.producerDevice },
-                    { walletAddress: state.bot.walletAddress, deviceAddress: state.bot.deviceAddress },
                     contractData.price,
                     applicationId
                 );
@@ -118,6 +116,7 @@ eventBus.on("text", async (fromAddress, message) => {
             // We're received all informatin we need about the producer, send
             // the information to the backend!
             const pairingSecret = pairingCache.get(fromAddress);
+            pairingCache.delete(fromAddress);
             await setProducerInformation(
                 pairingSecret!,
                 walletAddress,
@@ -154,17 +153,63 @@ eventBus.on("text", async (fromAddress, message) => {
 /**
  * Event send once transactions become stable
  */
-eventBus.on("my_transactions_became_stable", async (arrUnits) => {
-    // We cannot use state.applicationId btw, we need to extract that from arrUnits :-)
-    await logEvent(LoggableEvents.PAYMENT_BECAME_STABLE, { applicationId: "temp" });
+eventBus.on("new_my_transactions", async (arrUnits) => {
+    arrUnits.forEach((unit) => {
+        // Did we confirm receival of a product?
+        db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
+            rows.forEach(async (row) => {
+                const contract = await getContractByConfirmKey(row.feed_name);
 
-    // Set completed = 3 for application in Contracts DB
+                if (contract) {
+                    device.sendMessageToDevice(
+                        contract.ProducerDevice,
+                        "text",
+                        "The Receiver of your product has confirmed reception. In around 15 minutes you will be able " +
+                        "to extract your money from the contract."
+                    );
+                }
+            });
+        });
 
-    // Check if transactions match with the contract
+        // ... or did a donor pay his donation?
+        db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
+            rows.forEach(async (row) => {
+                const contract = await getContractBySharedAddress(row.address);
 
-    // Request the backend to update application to pending
-    await updateApplicationStatus(state.applicationId, ApplicationStatus.PENDING);
+                if (contract && contract.Completed !== 1) {
+                    device.sendMessageToDevice(
+                        contract.DonorDevice,
+                        "text",
+                        `Your donation of ${contract.Price}$ has now been submitted. ` +
+                        "You'll receive one more message once the donation has been fully processed."
+                    );
+                }
+            });
+        }));
+    });
 });
 
-checkContractDate()
-    .catch(err => { console.error(err); });
+/**
+ * Event send once transactions become stable
+ */
+eventBus.on("my_transactions_became_stable", async (arrUnits) => {
+    arrUnits.forEach((unit) => {
+        // Did a donation become stable?
+        db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
+            rows.forEach(async (row) => {
+                const contract = await getContractBySharedAddress(row.address);
+
+                if (contract) {
+                    await completeContract(contract.ApplicationId);
+                    await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
+
+                    device.sendMessageToDevice(
+                        contract.DonorDevice,
+                        "text",
+                        "Your donation has now been processed. Thank you so much for your contribution!"
+                    );
+                }
+            });
+        }));
+    });
+});

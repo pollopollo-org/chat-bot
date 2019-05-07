@@ -1,9 +1,10 @@
+const headlessWallet = require("headless-obyte");
 import { Buffer } from "buffer";
-import conf = require("ocore/conf");
 import device = require("ocore/device.js");
 import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses.js");
 
-import { state } from "../state";
+import { ApplicationStatus, updateApplicationStatus } from "../requests/requests";
+import { convertDollarToByte } from "./convertDollarToByte";
 import { logEvent, LoggableEvents } from "./logEvent";
 import { storeContract } from "./storeContract";
 
@@ -24,77 +25,104 @@ export type Participant = {
  * Method that'll, based on a variaty of parameters creates a contract for a donor
  * to sign
  */
-export function offerContract(donor: Participant, producer: Participant, bot: Participant, price: number, applicationId: string) {
-    const hasRecievedClause = ["in data feed", [
-        [bot.walletAddress],
-        `${applicationId}`,
-        "=",
-        "true"
-    ]];
+export function offerContract(donor: Participant, producer: Participant, price: number, applicationId: string) {
+    headlessWallet.issueOrSelectAddressByIndex(0, 0, async (botWallet) => {
+        const botDeviceAddress = device.getMyDeviceAddress();
 
-    const contract = ["or", [
-        ["and", [
-            ["address", producer.walletAddress],
-            hasRecievedClause
-        ]],
-        ["and", [
-            ["address", donor.walletAddress],
-            ["in data feed", [
-                [bot.walletAddress],
-                `${applicationId}_donorClaims`,
-                "=",
-                "true"
+        const timestamp = new Date();
+        const confirmKey = `receiver_has_received_${timestamp.getTime()}_${applicationId}`;
+
+        // Money can be extracted via the following criteria
+        // 1. Producer can extract money if the Receiver has indicated reception of goods
+        // 2. Donor can extract money if more than 30 days elapses
+        // 3. Bot can extract money if more then 90 days elapses (safety valve)
+        const contract = ["or", [
+            ["and", [
+                ["address", producer.walletAddress],
+                ["in data feed", [
+                    [botWallet],
+                    confirmKey,
+                    "=",
+                    "confirmed"
+                ]]
+            ]],
+            ["and", [
+                ["address", donor.walletAddress],
+                ["in data feed", [
+                    [botWallet],
+                    "timestamp",
+                    ">",
+                    Date.now() + 1000 * 60 * 60 * 24 * 30
+                ]]
+            ]],
+            ["and", [
+                ["address", botWallet],
+                ["in data feed", [
+                    [botWallet],
+                    "timestamp",
+                    ">",
+                    Date.now() + 1000 * 60 * 60 * 24 * 30 * 3
+                ]]
             ]]
-        ]],
-        ["and", [
-            ["address", bot.walletAddress],
-            ["in data feed", [
-                [bot.walletAddress],
-                `${applicationId}_chatbotClaims`
-            ]]
-        ]]
-    ]];
+        ]];
 
-    const assocSignersByPath = {
-        "r.0.0": {
-            address: producer.walletAddress,
-            member_signing_path: "r", // unused, should be always "r"
-            device_address: producer.deviceAddress
-        },
-        "r.1.0": {
-            address: donor.walletAddress,
-            member_signing_path: "r", // unused, should be always "r"
-            device_address: donor.deviceAddress
-        },
-        "r.2.0": {
-            address: bot.walletAddress,
-            member_signing_path: "r",
-            device_address: bot.deviceAddress
-        }
-    };
+        const assocSignersByPath = {
+            "r.0.0": {
+                address: producer.walletAddress,
+                member_signing_path: "r", // unused, should be always "r"
+                device_address: producer.deviceAddress
+            },
+            "r.1.0": {
+                address: donor.walletAddress,
+                member_signing_path: "r", // unused, should be always "r"
+                device_address: donor.deviceAddress
+            },
+            "r.2.0": {
+                address: botWallet,
+                member_signing_path: "r",
+                device_address: botDeviceAddress
+            }
+        };
 
-    walletDefinedByAddresses.createNewSharedAddress(contract, assocSignersByPath, {
-        ifError: async (err) => {
-            await logEvent(LoggableEvents.FAILED_TO_OFFER_CONTRACT, { donor, producer, applicationId, price, error: err });
-        },
+        // Now that we've constructed the contract, then create a shared address
+        // to contain it!
+        walletDefinedByAddresses.createNewSharedAddress(contract, assocSignersByPath, {
+            ifError: async (err) => {
+                device.sendMessageToDevice(
+                    donor.deviceAddress,
+                    "text",
+                    "Something went wrong while creating the contract. Please wait a while and try again later."
+                );
+                logEvent(LoggableEvents.FAILED_TO_OFFER_CONTRACT, { donor, producer, applicationId, price, error: err });
+            },
 
-        ifOk: async (sharedAddress) => {
-            await logEvent(LoggableEvents.OFFERED_CONTRACT, { donor, producer, applicationId, price, sharedAddress });
-            const arrPayments = [{ address: sharedAddress, amount: price, asset: "base" }];
-            const assocDefinitions = {};
-            assocDefinitions[sharedAddress] = {
-                definition: contract,
-                signers: assocSignersByPath
-            };
-            await storeContract(Number.parseInt(applicationId, 10));
-            const objPaymentRequest = { payments: arrPayments, definitions: assocDefinitions };
-            const paymentJson = JSON.stringify(objPaymentRequest);
-            const paymentJsonBase64 = new Buffer(paymentJson).toString("base64");
-            const paymentRequestCode = `payment: ${paymentJsonBase64}`;
-            const paymentRequestText = `[Please pay your donation here](${paymentRequestCode})`;
-            device.sendMessageToDevice(donor.deviceAddress, "text", paymentRequestText);
+            ifOk: async (sharedAddress) => {
+                logEvent(LoggableEvents.OFFERED_CONTRACT, { donor, producer, applicationId, price, sharedAddress });
 
-            state.applicationId = applicationId;
-        }
+                // Create the actual payment to send to the donor
+                const arrPayments = [{ address: sharedAddress, amount: convertDollarToByte(price), asset: "base" }];
+                const assocDefinitions = {};
+                assocDefinitions[sharedAddress] = {
+                    definition: contract,
+                    signers: assocSignersByPath
+                };
+
+                const objPaymentRequest = { payments: arrPayments, definitions: assocDefinitions };
+                const paymentJson = JSON.stringify(objPaymentRequest);
+                const paymentJsonBase64 = new Buffer(paymentJson).toString("base64");
+                const paymentRequestCode = `payment: ${paymentJsonBase64}`;
+                const paymentRequestText = `[Please pay your donation here](${paymentRequestCode})`;
+                device.sendMessageToDevice(donor.deviceAddress, "text", paymentRequestText);
+
+                // Store a local copy of the contract in order to be able to retrieve
+                // metadata later on
+                await storeContract(sharedAddress, Number.parseInt(applicationId, 10), timestamp, confirmKey, donor, producer, price);
+
+                // And ensure that the Application gets locked on the PolloPollo
+                // website in order to avoid multiple donations to the same application
+                // while transaction becomes stable
+                await updateApplicationStatus(applicationId, ApplicationStatus.LOCKED);
+            }
+        });
     });
 }

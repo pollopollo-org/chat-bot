@@ -4,9 +4,9 @@
   "description": "PolloPollo chat-bot used to integrate https://pollopollo.org with the Obyte technology",
   "main": "lib/index.js",
   "scripts": {
-    "kill": "ps aux | grep '[y]arn start' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[y]arn dev ' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[n]ode --max-old-space-size=4096' | awk '{print $2}' | xargs kill -9",
-    "start": "node --max-old-space-size=4096 lib/index.js",
-    "dev": "yarn compile && yarn start",
+    "kill": "ps aux | grep '[y]arn go' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[y]arn dev ' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[n]ode --max-old-space-size=4096' | awk '{print $2}' | xargs kill -9",
+    "go": "node --max-old-space-size=4096 lib/index.js",
+    "dev": "yarn compile && yarn go",
     "devBash": "yarn kill && yarn dev",
     "documentation": "rimraf documentation && typedoc --out ./documentation --tsconfig tsconfig.json --hideGenerator --name PolloPolloChatBot",
     "lint": "tslint --project tsconfig.json --config tslint.json --format stylish",
@@ -14,6 +14,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "express": "^4.16.4",
     "headless-obyte": "git+https://github.com/byteball/headless-obyte.git",
     "mariadb": "^2.0.3",
@@ -24,6 +25,7 @@
     "ssl-root-cas": "^1.3.1"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.17.0",
     "@types/express": "^4.16.1",
     "@types/node": "^11.13.7",
     "@types/node-cron": "^2.0.2",

@@ -57,56 +57,61 @@ type CombinedData = RegisteredUserData | ContractData | PaymentStableData | with
  * also ensure the file is properly locked while doing so.
  */
 // tslint:disable max-line-length
-export async function logEvent(evtType: LoggableEvents, data: CombinedData): Promise<void> {
-    const logFile = path.resolve("/home/pollopollo/.pollo_log");
-    let errorMessage: string = `[${new Date().toUTCString()} `;
+export function logEvent(evtType: LoggableEvents, data: CombinedData): void {
+    const logger = async () => {
+        const logFile = path.resolve("/home/pollopollo/.pollo_log");
+        let errorMessage: string = `[${new Date().toUTCString()} `;
 
-    switch (evtType) {
-        case LoggableEvents.REGISTERED_USER:
-            const registeredData = <RegisteredUserData>data;
-            errorMessage += `- REGISTERED_USER] User with the wallet address '${registeredData.wallet},`;
-            errorMessage += `device address '${registeredData.device}' and the pairing secret '${registeredData.pairingSecret}'`;
-            break;
+        switch (evtType) {
+            case LoggableEvents.REGISTERED_USER:
+                const registeredData = <RegisteredUserData>data;
+                errorMessage += `- REGISTERED_USER] User with the wallet address '${registeredData.wallet},`;
+                errorMessage += `device address '${registeredData.device}' and the pairing secret '${registeredData.pairingSecret}'`;
+                break;
 
-        case LoggableEvents.OFFERED_CONTRACT:
-            const offeredData = <ContractData>data;
-            errorMessage += `- OFFERED_CONTRACT] Successfully offered a contract with the following parameters: \n`;
-            errorMessage += `    ApplicationId: ${offeredData.applicationId}\n`;
-            errorMessage += `    Price in dollars: ${offeredData.price}, in bytes: ${convertDollarToByte(offeredData.price)}\n`;
-            errorMessage += `    Shared address (contract): ${offeredData.sharedAddress}\n`;
-            errorMessage += `    Donor:\n        wallet: ${offeredData.donor.walletAddress}\n        device: ${offeredData.donor.walletAddress}\n`;
-            errorMessage += `    Producer:\n        wallet: ${offeredData.producer.walletAddress}\n        device: ${offeredData.producer.deviceAddress}`;
-            break;
+            case LoggableEvents.OFFERED_CONTRACT:
+                const offeredData = <ContractData>data;
+                errorMessage += `- OFFERED_CONTRACT] Successfully offered a contract with the following parameters: \n`;
+                errorMessage += `    ApplicationId: ${offeredData.applicationId}\n`;
+                errorMessage += `    Price in dollars: ${offeredData.price}, in bytes: ${convertDollarToByte(offeredData.price)}\n`;
+                errorMessage += `    Shared address (contract): ${offeredData.sharedAddress}\n`;
+                errorMessage += `    Donor:\n        wallet: ${offeredData.donor.walletAddress}\n        device: ${offeredData.donor.walletAddress}\n`;
+                errorMessage += `    Producer:\n        wallet: ${offeredData.producer.walletAddress}\n        device: ${offeredData.producer.deviceAddress}`;
+                break;
 
-        case LoggableEvents.FAILED_TO_OFFER_CONTRACT:
-            const failData = <ContractData>data;
-            errorMessage += `- FAILED_TO_OFFER_CONTRACT] FAILED to offer a contract with the following parameters: \n`;
-            errorMessage += `    ApplicationId: ${failData.applicationId}\n`;
-            errorMessage += `    Price in dollars: ${failData.price}, in bytes: ${convertDollarToByte(failData.price)}\n`;
-            errorMessage += `    Shared address (contract): ${failData.sharedAddress}\n`;
-            errorMessage += `    Donor:\n        wallet: ${failData.donor.walletAddress}\n        device: ${failData.donor.walletAddress}\n`;
-            errorMessage += `    Producer:\n        wallet: ${failData.producer.walletAddress}\n        device: ${failData.producer.deviceAddress}\n`;
-            if (failData.error) {
-                errorMessage += `    Error message: \n        ${failData.error}`;
-            }
-            break;
+            case LoggableEvents.FAILED_TO_OFFER_CONTRACT:
+                const failData = <ContractData>data;
+                errorMessage += `- FAILED_TO_OFFER_CONTRACT] FAILED to offer a contract with the following parameters: \n`;
+                errorMessage += `    ApplicationId: ${failData.applicationId}\n`;
+                errorMessage += `    Price in dollars: ${failData.price}, in bytes: ${convertDollarToByte(failData.price)}\n`;
+                errorMessage += `    Shared address (contract): ${failData.sharedAddress}\n`;
+                errorMessage += `    Donor:\n        wallet: ${failData.donor.walletAddress}\n        device: ${failData.donor.walletAddress}\n`;
+                errorMessage += `    Producer:\n        wallet: ${failData.producer.walletAddress}\n        device: ${failData.producer.deviceAddress}\n`;
+                if (failData.error) {
+                    errorMessage += `    Error message: \n        ${failData.error}`;
+                }
+                break;
 
-        case LoggableEvents.PAYMENT_BECAME_STABLE:
-            const stableData = <PaymentStableData>data;
-            errorMessage += `- PAYMENT_BECAME_STABLE] Donation to applicaiton with the id '${stableData.applicationId}'`;
-            break;
+            case LoggableEvents.PAYMENT_BECAME_STABLE:
+                const stableData = <PaymentStableData>data;
+                errorMessage += `- PAYMENT_BECAME_STABLE] Donation to applicaiton with the id '${stableData.applicationId}'`;
+                break;
 
-        default:
-            errorMessage += "- UNKNOWN_EVENT] Something wasn't logged properly, please contact developers.\n";
-            errorMessage += `Potential error: ${data.error}`;
-    }
+            default:
+                errorMessage += "- UNKNOWN_EVENT] Something wasn't logged properly, please contact developers.\n";
+                errorMessage += `Potential error: ${data.error}`;
+        }
 
-    if (await exists(logFile)) {
-        const release = await lockfile.lock(logFile);
-        await appendFile(logFile, `\n\n${errorMessage}`);
-        await release();
-    } else {
-        await createFile(logFile, errorMessage);
-    }
+        if (await exists(logFile)) {
+            const release = await lockfile.lock(logFile);
+            await appendFile(logFile, `\n\n${errorMessage}`);
+            await release();
+        } else {
+            await createFile(logFile, errorMessage);
+        }
+    };
+
+    logger()
+        .catch(err => err);
 }
 // tslint:enable max-line-length

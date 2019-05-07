@@ -9,8 +9,8 @@ export enum ApplicationStatus {
     OPEN,
     LOCKED,
     PENDING,
-    CLOSED,
-    ALL
+    COMPLETED,
+    UNAVAILABLE
 }
 
 /**
@@ -18,7 +18,7 @@ export enum ApplicationStatus {
  * to given status
  */
 // tslint:disable-next-line export-name
-export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus) {
+export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus, deviceAddress?: string) {
     try {
         const endPoint = apis.applications.updateToPending;
 
@@ -29,19 +29,18 @@ export async function updateApplicationStatus(applicationId: string, status: App
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                applicationId: applicationId,
-                status: status
+                applicationId: Number(applicationId),
+                status
             })
         });
 
-        if (response.ok) {
-            // Succeeded
-        } else {
-            // Something went wrong here, send failure message
+        if (!response.ok && deviceAddress) {
+            returnApiError(deviceAddress, response.status, endPoint);
         }
-
     } catch (err) {
-        // Catch error
+        if (deviceAddress) {
+            device.sendMessageToDevice(deviceAddress, "text", "Failed to update application state, please contact developers");
+        }
     }
 }
 
@@ -71,7 +70,7 @@ export async function setProducerInformation(
         });
 
         if (response.ok) {
-            await logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: deviceAddress, pairingSecret });
+            logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: deviceAddress, pairingSecret });
             device.sendMessageToDevice(
                 deviceAddress,
                 "text",
@@ -79,10 +78,10 @@ export async function setProducerInformation(
                 "through PolloPollo.org."
             );
         } else {
-            returnApiError(deviceAddress, response.status, endPoint.errors);
+            returnApiError(deviceAddress, response.status, endPoint);
         }
     } catch (err) {
-        device.sendMessageToDevice(deviceAddress, "text", "Something went wrong while processing your request.");
+        device.sendMessageToDevice(deviceAddress, "text", `Something went wrong while processing your request. ${err}`);
     }
 }
 
@@ -110,7 +109,7 @@ export async function getContractData(applicationId: string, deviceAddress: stri
         if (response.ok) {
             return await response.json();
         } else {
-            returnApiError(deviceAddress, response.status, endPoint.errors);
+            returnApiError(deviceAddress, response.status, endPoint);
         }
     } catch (err) {
         device.sendMessageToDevice(deviceAddress, "text", "Something went wrong while processing your request.");
