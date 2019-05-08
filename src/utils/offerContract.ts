@@ -91,7 +91,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 device.sendMessageToDevice(
                     donor.deviceAddress,
                     "text",
-                    "Something went wrong while creating the contract. Please wait a while and try again later."
+                    "Something went wrong while creating the contract. Please try again later."
                 );
                 logEvent(LoggableEvents.FAILED_TO_OFFER_CONTRACT, { donor, producer, applicationId, price, error: err });
             },

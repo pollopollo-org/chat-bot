@@ -17,7 +17,7 @@ export const apis = {
             path: `${basePath}/users/wallet`,
             method: "PUT",
             errors: {
-                404: "Unable to set information since there wasn't found a related Producer on PolloPollo.org"
+                404: "Unable to set information since a related Producer on PolloPollo.org was not found."
             }
         },
         count: {

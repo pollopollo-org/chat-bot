@@ -14,7 +14,7 @@ export function returnApiError(returnAddress: string, statusCode: number, endPoi
         device.sendMessageToDevice(
             returnAddress,
             "text",
-            "You've exceeded the rate limit. Please wait a while and then try again"
+            "You have exceeded the rate limit. Please wait a minute and then try again."
         );
 
         return;

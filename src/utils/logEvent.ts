@@ -98,7 +98,7 @@ export function logEvent(evtType: LoggableEvents, data: CombinedData): void {
                 break;
 
             default:
-                errorMessage += "- UNKNOWN_EVENT] Something wasn't logged properly, please contact developers.\n";
+                errorMessage += "- UNKNOWN_EVENT] Something was not logged properly, please contact developers.\n";
                 errorMessage += `Potential error: ${data.error}`;
         }
 

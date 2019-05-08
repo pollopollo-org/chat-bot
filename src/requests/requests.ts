@@ -39,7 +39,7 @@ export async function updateApplicationStatus(applicationId: string, status: App
         }
     } catch (err) {
         if (deviceAddress) {
-            device.sendMessageToDevice(deviceAddress, "text", "Failed to update application state, please contact developers");
+            device.sendMessageToDevice(deviceAddress, "text", "Failed to update application state, please contact developers.");
         }
     }
 }
@@ -74,7 +74,7 @@ export async function setProducerInformation(
             device.sendMessageToDevice(
                 deviceAddress,
                 "text",
-                "Your information has now been set, and you're ready to receive donations " +
+                "Your information has now been set, and you are ready to receive donations " +
                 "through PolloPollo.org."
             );
         } else {

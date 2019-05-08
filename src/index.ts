@@ -21,7 +21,7 @@ import { completeContract } from "./utils/storeContract";
  * Setup cron-jobs etc. as soon as the bot is fully booted
  */
 eventBus.on("headless_wallet_ready", () => {
-    // Ensure that the bot checks once a day if any contracts have been expired.
+    // Ensure that the bot checks once a day if any contracts have expired.
     cron.schedule("* 0 * * *", publishTimestamp);
     headlessWallet.setupChatEventHandlers();
 
@@ -30,7 +30,7 @@ eventBus.on("headless_wallet_ready", () => {
 });
 
 /**
- * As soon as a new user pairs to the bot, attempt to link his/hers device address
+ * As soon as a new user pairs to the bot, attempt to link their device address
  * to the associated PolloPollo user, based on the pairing secret.
  */
 eventBus.on("paired", async (fromAddress, pairingSecret) => {
@@ -55,7 +55,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
         device.sendMessageToDevice(
             fromAddress,
             "text",
-            "Your device has been paired and is ready to finalize the donation. All we need " +
+            "Your device has now been paired and is ready to finalize the donation. All we need " +
             `now is your wallet address to issue a donation contract.`
         );
     }
@@ -64,8 +64,8 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
     device.sendMessageToDevice(
         fromAddress,
         "text",
-        "Please insert your wallet address by clicking (···) and chose " +
-        "'insert my address'. Make sure to use a single address wallet"
+        "Please insert your wallet address by clicking (···) and choose " +
+        "'Insert my address'. Make sure to use a single address wallet."
     );
 });
 
@@ -87,7 +87,7 @@ eventBus.on("text", async (fromAddress, message) => {
             // If the application id couldn't be retreived as well, then something
             // has went wrong somewhere in the process
             if (!applicationId) {
-                logEvent(LoggableEvents.UNKNOWN, { error: "Failed to retrieve either applicationId or pairingSecret from cache" });
+                logEvent(LoggableEvents.UNKNOWN, { error: "Failed to retrieve either applicationId or pairingSecret from cache." });
                 device.sendMessageToDevice(
                     fromAddress,
                     "text",
@@ -145,7 +145,7 @@ eventBus.on("text", async (fromAddress, message) => {
                 fromAddress,
                 "text",
                 "Your message was not understood. Please insert your wallet address by clicking (···) and chose " +
-                "'insert my address'. Make sure to use a single address wallet"
+                "'Insert my address'. Make sure to use a single address wallet."
             );
     }
 });
@@ -165,7 +165,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         contract.ProducerDevice,
                         "text",
                         "The Receiver of your product has confirmed reception. In around 15 minutes you will be able " +
-                        "to extract your money from the contract."
+                        "to extract your payment from the contract."
                     );
                 }
             });
@@ -181,7 +181,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         contract.DonorDevice,
                         "text",
                         `Your donation of ${contract.Price}$ has now been submitted. ` +
-                        "You'll receive one more message once the donation has been fully processed."
+                        "You will receive a message once the donation has been fully processed."
                     );
                 }
             });
@@ -206,7 +206,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
-                        "Your donation has now been processed. Thank you so much for your contribution!"
+                        "Your donation has now been processed. Thank you for your contribution!"
                     );
                 }
             });
