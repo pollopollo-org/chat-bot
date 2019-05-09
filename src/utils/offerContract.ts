@@ -3,10 +3,10 @@ import device = require("ocore/device.js");
 import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses.js");
 
 import { ApplicationStatus, updateApplicationStatus } from "../requests/requests";
+import { state } from "../state";
 import { convertDollarToByte } from "./convertDollarToByte";
 import { logEvent, LoggableEvents } from "./logEvent";
 import { storeContract } from "./storeContract";
-import { state } from "../state";
 
 export type Participant = {
     /**

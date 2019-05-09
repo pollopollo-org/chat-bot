@@ -3,19 +3,20 @@ import db = require("ocore/db");
 import device = require("ocore/device.js");
 import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
+import wallet = require("ocore/wallet");
 
 import "./listener";
 
 import { ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
+import { state } from "./state";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { completeContract } from "./utils/storeContract";
-import { state } from "./state";
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
