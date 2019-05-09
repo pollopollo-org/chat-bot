@@ -1,12 +1,14 @@
 import eventBus = require("ocore/event_bus.js");
 import network = require("ocore/network.js");
+const headlessWallet = require("headless-obyte");
 
 /**
  * Contains a state configuration object kept only in memory, and will be reconstructed
  * on reboot
  */
 export const state = {
-    rates: network.exchangeRates
+    rates: network.exchangeRates,
+    wallet: headlessWallet
 };
 
 /**

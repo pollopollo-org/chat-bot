@@ -1,18 +1,18 @@
-const headlessWallet = require("headless-obyte");
 import composer = require("ocore/composer.js");
 import device = require("ocore/device.js");
 import network = require("ocore/network.js");
 import objectHash = require("ocore/object_hash.js");
+import { state } from "../state";
 
 /**
  * Posts a message to a given datafeed
  */
 export function writeToDataFeed(dataFeed: unknown) {
-    headlessWallet.issueOrSelectAddressByIndex(0, 0, async (botWallet) => {
+    state.wallet.issueOrSelectAddressByIndex(0, 0, (botWallet) => {
         const params = {
             paying_addresses: [botWallet],
             outputs: [{ address: botWallet, amount: 0 }],
-            signer: headlessWallet.signer,
+            signer: state.wallet.signer,
             callbacks: composer.getSavingCallbacks({
                 ifNotEnoughFunds: console.error,
                 ifError: console.error,

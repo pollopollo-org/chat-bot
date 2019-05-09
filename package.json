@@ -10,7 +10,8 @@
     "devBash": "yarn kill && yarn dev",
     "documentation": "rimraf documentation && typedoc --out ./documentation --tsconfig tsconfig.json --hideGenerator --name PolloPolloChatBot",
     "lint": "tslint --project tsconfig.json --config tslint.json --format stylish",
-    "compile": "rimraf lib && tsc && yarn lint --fix && copyfiles conf.js ./lib && copyfiles package.json ./lib"
+    "compileWindows": "rimraf lib && tsc && yarn lint --fix && copyfiles conf.js ./lib && copyfiles package.json ./lib",
+    "compile": "rimraf lib && tsc"
   },
   "license": "ISC",
   "dependencies": {

@@ -1,4 +1,3 @@
-const headlessWallet = require("headless-obyte");
 import cron = require("node-cron");
 import db = require("ocore/db");
 import device = require("ocore/device.js");
@@ -16,6 +15,7 @@ import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { completeContract } from "./utils/storeContract";
+import { state } from "./state";
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
@@ -23,7 +23,7 @@ import { completeContract } from "./utils/storeContract";
 eventBus.on("headless_wallet_ready", () => {
     // Ensure that the bot checks once a day if any contracts have expired.
     cron.schedule("* 0 * * *", publishTimestamp);
-    headlessWallet.setupChatEventHandlers();
+    state.wallet.setupChatEventHandlers();
 
     publishTimestamp()
         .catch(err => { console.error(err); });

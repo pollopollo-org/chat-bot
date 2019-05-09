@@ -1,4 +1,3 @@
-const headlessWallet = require("headless-obyte");
 import { Buffer } from "buffer";
 import device = require("ocore/device.js");
 import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses.js");
@@ -7,6 +6,7 @@ import { ApplicationStatus, updateApplicationStatus } from "../requests/requests
 import { convertDollarToByte } from "./convertDollarToByte";
 import { logEvent, LoggableEvents } from "./logEvent";
 import { storeContract } from "./storeContract";
+import { state } from "../state";
 
 export type Participant = {
     /**
@@ -26,7 +26,7 @@ export type Participant = {
  * to sign
  */
 export function offerContract(donor: Participant, producer: Participant, price: number, applicationId: string) {
-    headlessWallet.issueOrSelectAddressByIndex(0, 0, async (botWallet) => {
+    state.wallet.issueOrSelectAddressByIndex(0, 0, async (botWallet) => {
         const botDeviceAddress = device.getMyDeviceAddress();
 
         const timestamp = new Date();
