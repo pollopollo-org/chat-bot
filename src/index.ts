@@ -246,8 +246,9 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver of ${product} has confirmed reception. ` +
-                        `You may now claim ${contract.Price}USD from the contract starting with ${contract.SharedAddress.substring(0, 4)}.`
+                        `The confirmation of reception of ${product} is now final and you can withdraw the donated funds` +
+                        ` from smart wallet starting with ${contract.SharedAddress.substring(0, 4)} - to withdraw funds, ` +
+                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
                     );
                 }
             });
