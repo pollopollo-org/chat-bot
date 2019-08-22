@@ -171,13 +171,28 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
         db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
             rows.forEach(async (row) => {
                 const contract = await getContractByConfirmKey(row.feed_name);
+                let connection;
+                let product;
 
+                try {
+                    connection = await pool.getConnection();
+                    product = await connection.query("SELECT p.Title FROM Applications a JOIN Products p " +
+                                                     "ON a.ProductId = p.Id WHERE a.Id = ?",
+                                                     [contract.ApplicationId]);
+                } catch (err) {
+                    console.log(err);
+                } finally {
+                    // End the process after the job finishes
+                    if (connection) {
+                        connection.end();
+                    }
+                }
                 if (contract) {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        "The Receiver of your product has confirmed reception. In about 15 minutes you will be able " +
-                        "to extract your payment from the contract."
+                        `The Receiver of ${product} has confirmed reception. Another message will notify you when you ` +
+                        `can extract the payment from the contract starting with ${contract.SharedAddress.substrin(0, 4)}.`
                     );
                 }
             });
