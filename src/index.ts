@@ -18,6 +18,17 @@ import { offerContract } from "./utils/offerContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { completeContract } from "./utils/storeContract";
 
+const mariadb = require("mariadb");
+const dbData = require("../../dbData");
+
+const pool = mariadb.createPool({
+    host: dbData.host,
+    user: dbData.user,
+    password: dbData.password,
+    database: dbData.database,
+    connectionLimit: 5
+});
+
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
  */
@@ -41,7 +52,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
     if (Number.isNaN(asInt) || `${asInt}`.length !== pairingSecret.length) {
         pairingCache.set(fromAddress, pairingSecret);
 
-        // ... else we're dealing with a producer that attempts to link his wallet
+        // ... otherwise we're dealing with a producer that attempts to link his wallet
         // with an account.
         device.sendMessageToDevice(
             fromAddress,
@@ -165,7 +176,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        "The Receiver of your product has confirmed reception. In around 15 minutes you will be able " +
+                        "The Receiver of your product has confirmed reception. In about 15 minutes you will be able " +
                         "to extract your payment from the contract."
                     );
                 }
@@ -195,6 +206,38 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
  */
 eventBus.on("my_transactions_became_stable", async (arrUnits) => {
     arrUnits.forEach((unit) => {
+        // Is the producer able to claim funds?
+        db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
+            rows.forEach(async (row) => {
+                const contract = await getContractByConfirmKey(row.feed_name);
+                let connection;
+                let product;
+
+                try {
+                    connection = await pool.getConnection();
+                    product = await connection.query("SELECT p.Title FROM Applications a JOIN Products p " +
+                                                     "ON a.ProductId = p.Id WHERE a.Id = ?",
+                                                     [contract.ApplicationId]);
+                } catch (err) {
+                    console.log(err);
+                } finally {
+                    // End the process after the job finishes
+                    if (connection) {
+                        connection.end();
+                    }
+                }
+
+                if (contract) {
+                    device.sendMessageToDevice(
+                        contract.ProducerDevice,
+                        "text",
+                        `The Receiver of ${product} has confirmed reception. ` +
+                        `You may now claim ${contract.Price}USD from the contract starting with ${contract.SharedAddress.substring(0, 4)}.`
+                    );
+                }
+            });
+        });
+
         // Did a donation become stable?
         db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
             rows.forEach(async (row) => {
