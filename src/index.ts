@@ -13,6 +13,7 @@ import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceiver
 import { state } from "./state";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
+import { getProductByApplicationId } from "./utils/getProduct";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
@@ -152,7 +153,7 @@ eventBus.on("text", async (fromAddress, message) => {
 });
 
 /**
- * Event send once transactions become stable
+ * Event sent on new unstable transactions
  */
 eventBus.on("new_my_transactions", async (arrUnits) => {
     arrUnits.forEach((unit) => {
@@ -182,7 +183,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         contract.DonorDevice,
                         "text",
                         `Your donation of ${contract.Price}$ has now been submitted. ` +
-                        "You will receive a message once the donation has been fully processed."
+                        "You will receive a message once the donation has been fully processed. "
                     );
                 }
             });
@@ -191,7 +192,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
 });
 
 /**
- * Event send once transactions become stable
+ * Event sent once transactions become stable
  */
 eventBus.on("my_transactions_became_stable", async (arrUnits) => {
     arrUnits.forEach((unit) => {
@@ -203,11 +204,23 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                 if (contract) {
                     await completeContract(contract.ApplicationId);
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
+                    const sharedAddress = String(contract.SharedAddress);
 
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
-                        "Your donation has now been processed. Thank you for your contribution!"
+                        "Your donation has now been processed. Thank you for your contribution! " +
+                        `Should the receiver not pick up the product within 30 days, ` +
+                        ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.`
+                    );
+
+                    const product = await getProductByApplicationId(contract.ApplicationId);
+                    device.sendMessageToDevice(
+                        contract.ProducerDevice,
+                        "text",
+                        `The confirmation of reception of ${product.Title} is now final and you can withdraw the donated funds` +
+                        ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
+                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
                     );
                 }
             });
