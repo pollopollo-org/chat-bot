@@ -1,1 +1,0 @@
-{"version":3,"file":"confirmReception.js","sourceRoot":"","sources":["../../src/utils/confirmReception.ts"],"names":[],"mappings":";;AAAA,+CAA2D;AAC3D,uDAAoD;AAM7C,KAAK,UAAU,gBAAgB,CAAC,aAAqB;IACxD,MAAM,QAAQ,GAAG,EAAE,CAAC;IAEpB,MAAM,QAAQ,GAAG,MAAM,wCAA0B,CAAC,aAAa,CAAC,CAAC;IACjE,QAAQ,CAAC,QAAQ,CAAC,UAAU,CAAC,GAAG,WAAW,CAAC;IAE5C,iCAAe,CAAC,QAAQ,CAAC,CAAC;AAC9B,CAAC;AAPD,4CAOC"}
