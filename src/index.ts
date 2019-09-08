@@ -163,11 +163,14 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 const contract = await getContractByConfirmKey(row.feed_name);
 
                 if (contract) {
+                    const product = await getProductByApplicationId(contract.ApplicationId);
+                    const sharedAddress = String(contract.SharedAddress);
+
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        "The Receiver of your product has confirmed reception. In around 15 minutes you will be able " +
-                        "to extract your payment from the contract."
+                        `The Receiver of your product "${product.Title}" has confirmed reception. In around 15 minutes you will be able ` +
+                        `to extract your payment from the contract starting with ${sharedAddress.substring(0, 4)}.`
                     );
                 }
             });
@@ -196,7 +199,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
  */
 eventBus.on("my_transactions_became_stable", async (arrUnits) => {
     arrUnits.forEach((unit) => {
-        // Did a donation become stable?
+        // ... or did a donation become stable?
         db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
             rows.forEach(async (row) => {
                 const contract = await getContractBySharedAddress(row.address);
