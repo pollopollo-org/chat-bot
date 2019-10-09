@@ -9,9 +9,11 @@ import "./listener";
 
 import { ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
+import { application } from "express";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { state } from "./state";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
+import { getApplicationById } from "./utils/getApplication";
 import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
 import { getProductByApplicationId } from "./utils/getProduct";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
@@ -165,12 +167,12 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 if (contract) {
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const sharedAddress = String(contract.SharedAddress);
-                    const productTitle = String(product.Title);
+                    // const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver of your product "${productTitle}" has confirmed reception. In around 15 minutes you will be able ` +
+                        `The Receiver of your product "${product.Title}" has confirmed reception. In around 15 minutes you will be able ` +
                         `to extract your payment from the contract starting with ${sharedAddress.substring(0, 4)}.`
                     );
                 }
@@ -208,12 +210,12 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                 if (contract) {
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const sharedAddress = String(contract.SharedAddress);
-                    const productTitle = String(product.Title);
+                    // const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The confirmation of reception of ${productTitle} is now final and you can withdraw the donated funds` +
+                        `The confirmation of reception of ${product.Title} is now final and you can withdraw the donated funds` +
                         ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
                         `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
                     );
@@ -227,26 +229,38 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                 const contract = await getContractBySharedAddress(row.address);
 
                 if (contract) {
-                    await completeContract(contract.ApplicationId);
-                    await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
-                    const productTitle = String(product.Title);
+                    // const productTitle = String(product.Title);
+                    const cApplication = await getApplicationById(contract.ApplicationId);
+                    if (cApplication.Status < 2) {
+                        await completeContract(contract.ApplicationId);
+                        await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
 
-                    device.sendMessageToDevice(
-                        contract.DonorDevice,
-                        "text",
-                        "Your donation has now been processed. Thank you for your contribution! " +
-                        `Should the receiver not pick up the product within 30 days, ` +
-                        ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.`
-                    );
+                        device.sendMessageToDevice(
+                            contract.DonorDevice,
+                            "text",
+                            "Your donation has now been processed. Thank you for your contribution! " +
+                            `Should the receiver not pick up the product within 30 days, ` +
+                            ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.`
+                        );
 
-                    device.sendMessageToDevice(
-                        contract.ProducerDevice,
-                        "text",
-                        `A receiver has received a donation for you product ${productTitle}, ` +
-                        `and will probably pick up the product within 30 days. `
-                    );
+                        device.sendMessageToDevice(
+                            contract.ProducerDevice,
+                            "text",
+                            `A receiver has received a donation for you product ${product.Title}, ` +
+                            `and will probably pick up the product within 30 days. `
+                        );
+                    }
+                    if (cApplication.Status === 2) {
+                        device.sendMessageToDevice(
+                            contract.ProducerDevice,
+                            "text",
+                            `The confirmation of reception of ${product.Title} is now final and you can withdraw the donated funds` +
+                            ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
+                            `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
+                        );
+                    }
                 }
             });
         }));
