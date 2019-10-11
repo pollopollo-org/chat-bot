@@ -167,12 +167,12 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 if (contract) {
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const sharedAddress = String(contract.SharedAddress);
-                    // const productTitle = String(product.Title);
+                    const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver of your product "${product.Title}" has confirmed reception. In around 15 minutes you will be able ` +
+                        `The Receiver of your product "${productTitle}" has confirmed reception. In around 15 minutes you will be able ` +
                         `to extract your payment from the contract starting with ${sharedAddress.substring(0, 4)}.`
                     );
                 }
@@ -210,12 +210,12 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                 if (contract) {
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const sharedAddress = String(contract.SharedAddress);
-                    // const productTitle = String(product.Title);
+                    const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The confirmation of reception of ${product.Title} is now final and you can withdraw the donated funds` +
+                        `The confirmation of reception of "${productTitle}" is now final and you can withdraw the donated funds` +
                         ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
                         `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
                     );
@@ -231,9 +231,11 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                 if (contract) {
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
-                    // const productTitle = String(product.Title);
+                    const productTitle = String(product.Title);
                     const cApplication = await getApplicationById(contract.ApplicationId);
-                    if (cApplication.Status < 2) {
+                    const applicationStatus = Number(cApplication.Status);
+
+                    if (applicationStatus < 2) {
                         await completeContract(contract.ApplicationId);
                         await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
 
@@ -248,15 +250,15 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         device.sendMessageToDevice(
                             contract.ProducerDevice,
                             "text",
-                            `A receiver has received a donation for you product ${product.Title}, ` +
+                            `A receiver has received a donation for you product "${productTitle}", ` +
                             `and will probably pick up the product within 30 days. `
                         );
                     }
-                    if (cApplication.Status === 2) {
+                    if (applicationStatus === 2) {
                         device.sendMessageToDevice(
                             contract.ProducerDevice,
                             "text",
-                            `The confirmation of reception of ${product.Title} is now final and you can withdraw the donated funds` +
+                            `The confirmation of reception of "${productTitle}" is now final and you can withdraw the donated funds` +
                             ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
                             `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
                         );
