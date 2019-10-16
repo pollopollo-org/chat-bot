@@ -241,6 +241,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                             "alt, der plejer at ske er sket"
                         );
                     }
+                    /*
                     const currentApplication = await getApplicationById(contract.ApplicationId);
                     {
                         device.sendMessageToDevice(
@@ -248,7 +249,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                             "text",
                             `current application er fundet, dens status er ${currentApplication.Status}`
                         );
-                    }
+                    }*/
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
