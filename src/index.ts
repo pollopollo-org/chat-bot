@@ -13,7 +13,6 @@ import { application } from "express";
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { state } from "./state";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
-import { getApplicationById } from "./utils/getApplication";
 import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
 import { getProductByApplicationId } from "./utils/getProduct";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
@@ -202,54 +201,32 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
  */
 eventBus.on("my_transactions_became_stable", async (arrUnits) => {
     arrUnits.forEach((unit) => {
-        // Did reception of product become stable ?
-        db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows => {
-            rows.forEach(async (row) => {
-                const contract = await getContractByConfirmKey(row.feed_name);
-
-                if (contract) {
-                    const product = await getProductByApplicationId(contract.ApplicationId);
-                    const sharedAddress = String(contract.SharedAddress);
-                    const productTitle = String(product.Title);
-
-                    device.sendMessageToDevice(
-                        contract.ProducerDevice,
-                        "text",
-                        `The confirmation of reception of "${productTitle}" is now final and you can withdraw the donated funds` +
-                        ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
-                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
-                    );
-                }
-            });
-        }));
-
-        // ... or did a donation become stable?
         db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
             rows.forEach(async (row) => {
                 const contract = await getContractBySharedAddress(row.address);
-                const devAddress = "0YOAWXCIQE7K5YXDJBEKQ22VNSBM7YRKT";
-                if (contract) {
+
+                // Did reception become stable?
+                if (contract && contract.Completed === 1) {
+                    const sharedAddress = String(contract.SharedAddress);
+                    const product = await getProductByApplicationId(contract.ApplicationId);
+                    const productTitle = String(product.Title);
+                    device.sendMessageToDevice(
+                        contract.ProducerDevice,
+                        "text",
+                        `The confirmation of reception of ${productTitle} is now final and you can withdraw the donated funds` +
+                        ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
+                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
+                        );
+                    }
+
+                // ... or did a donation become stable?
+                if (contract && contract.Completed !== 1) {
                     await completeContract(contract.ApplicationId);
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const productTitle = String(product.Title);
-                    {
-                        device.sendMessageToDevice(
-                            devAddress,
-                            "text",
-                            "alt, der plejer at ske er sket"
-                        );
-                    }
-                    /*
-                    const currentApplication = await getApplicationById(contract.ApplicationId);
-                    {
-                        device.sendMessageToDevice(
-                            devAddress,
-                            "text",
-                            `current application er fundet, dens status er ${currentApplication.Status}`
-                        );
-                    }*/
+
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
@@ -264,23 +241,6 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         `A receiver has received a donation for you product ${productTitle}, ` +
                         `and will probably pick up the product within 30 days. `
                     );
-                    /*
-                    if (currentApplication.Status !== 8) {
-                        device.sendMessageToDevice(
-                            devAddress,
-                            "text",
-                            `conditional entered`
-                        );
-                    }
-                    /**
-                     * device.sendMessageToDevice(
-                     *  contract.ProducerDevice,
-                     *  "text",
-                     *  `The confirmation of reception of ${productTitle} is now final and you can withdraw the donated funds` +
-                     *  ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
-                     *  `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
-                     * );
-                     */
                 }
             });
         }));
