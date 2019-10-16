@@ -263,7 +263,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         `A receiver has received a donation for you product ${productTitle}, ` +
                         `and will probably pick up the product within 30 days. `
                     );
-
+                    /*
                     if (currentApplication.Status !== 8) {
                         device.sendMessageToDevice(
                             devAddress,
