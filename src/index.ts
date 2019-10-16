@@ -227,42 +227,59 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
         db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
             rows.forEach(async (row) => {
                 const contract = await getContractBySharedAddress(row.address);
-
+                const devAddress = "0YOAWXCIQE7K5YXDJBEKQ22VNSBM7YRKT";
                 if (contract) {
+                    await completeContract(contract.ApplicationId);
+                    await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const productTitle = String(product.Title);
-                    const cApplication = await getApplicationById(contract.ApplicationId);
-                    const applicationStatus = Number(cApplication.Status);
-
-                    if (applicationStatus < 2) {
-                        await completeContract(contract.ApplicationId);
-                        await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
-
+                    {
                         device.sendMessageToDevice(
-                            contract.DonorDevice,
+                            devAddress,
                             "text",
-                            "Your donation has now been processed. Thank you for your contribution! " +
-                            `Should the receiver not pick up the product within 30 days, ` +
-                            ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.`
-                        );
-
-                        device.sendMessageToDevice(
-                            contract.ProducerDevice,
-                            "text",
-                            `A receiver has received a donation for you product "${productTitle}", ` +
-                            `and will probably pick up the product within 30 days. `
+                            "alt, der plejer at ske er sket"
                         );
                     }
-                    if (applicationStatus === 2) {
+                    const currentApplication = await getApplicationById(contract.ApplicationId);
+                    {
                         device.sendMessageToDevice(
-                            contract.ProducerDevice,
+                            devAddress,
                             "text",
-                            `The confirmation of reception of "${productTitle}" is now final and you can withdraw the donated funds` +
-                            ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
-                            `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
+                            `current application er fundet, dens status er ${currentApplication.Status}`
                         );
                     }
+                    device.sendMessageToDevice(
+                        contract.DonorDevice,
+                        "text",
+                        "Your donation has now been processed. Thank you for your contribution! " +
+                        `Should the receiver not pick up the product within 30 days, ` +
+                        ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.`
+                    );
+
+                    device.sendMessageToDevice(
+                        contract.ProducerDevice,
+                        "text",
+                        `A receiver has received a donation for you product ${productTitle}, ` +
+                        `and will probably pick up the product within 30 days. `
+                    );
+
+                    if (currentApplication.Status !== 8) {
+                        device.sendMessageToDevice(
+                            devAddress,
+                            "text",
+                            `conditional entered`
+                        );
+                    }
+                    /**
+                     * device.sendMessageToDevice(
+                     *  contract.ProducerDevice,
+                     *  "text",
+                     *  `The confirmation of reception of ${productTitle} is now final and you can withdraw the donated funds` +
+                     *  ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
+                     *  `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
+                     * );
+                     */
                 }
             });
         }));

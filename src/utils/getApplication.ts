@@ -25,7 +25,8 @@ export async function createApplicationsTable(connection) {
                 Status INT, \n\
                 Created DATETIME, \n\
                 PRIMARY KEY (Id), \n\
-                )`
+                )
+                `
     );
 }
 
