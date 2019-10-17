@@ -166,6 +166,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 if (contract) {
                     const product = await getProductByApplicationId(contract.ApplicationId);
                     const sharedAddress = String(contract.SharedAddress);
+                    const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
@@ -210,6 +211,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
+                    const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.DonorDevice,
@@ -222,18 +224,19 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `A receiver has received a donation for you product ${product.Title}, ` +
+                        `A receiver has received a donation for you product ${productTitle}, ` +
                         `and will probably pick up the product within 30 days. `
                         );
 
                 } else if (contract) { // .. or did reception of a product become stable?
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
+                    const productTitle = String(product.Title);
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The confirmation of reception of ${product.Title} is now final and you can withdraw the donated funds` +
+                        `The confirmation of reception of ${productTitle} is now final and you can withdraw the donated funds` +
                         ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
                         `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
                         );
