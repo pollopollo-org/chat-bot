@@ -171,8 +171,9 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver of your product "${product.Title}" has confirmed reception. In around 15 minutes you will be able ` +
-                        `to extract your payment from the contract starting with ${sharedAddress.substring(0, 4)}.`
+                        `The Receiver of your product "${productTitle}" has confirmed reception. In around 15 minutes you will be able ` +
+                        `to extract your payment from the contract starting with ${sharedAddress.substring(0, 4)}.` +
+                        ""
                     );
                 }
             });
@@ -218,15 +219,17 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         "text",
                         "Your donation has now been processed. Thank you for your contribution! " +
                         `Should the receiver not pick up the product within 30 days, ` +
-                        ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.`
-                        );
+                        ` you may claim the money from the contract starting with ${sharedAddress.substring(0, 4)}.` +
+                        ""
+                    );
 
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
                         `A receiver has received a donation for you product ${productTitle}, ` +
-                        `and will probably pick up the product within 30 days. `
-                        );
+                        `and will probably pick up the product within 30 days. ` +
+                        ""
+                    );
 
                 } else if (contract) { // .. or did reception of a product become stable?
                     const sharedAddress = String(contract.SharedAddress);
@@ -238,10 +241,11 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         "text",
                         `The confirmation of reception of ${productTitle} is now final and you can withdraw the donated funds` +
                         ` from smart wallet starting with ${sharedAddress.substring(0, 4)} - to withdraw funds, ` +
-                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
-                        );
-                    }
-                });
+                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.` +
+                        ""
+                    );
+                }
+            });
         }));
     });
 });
