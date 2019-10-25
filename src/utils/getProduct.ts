@@ -44,7 +44,7 @@ export async function getProductByApplicationId(applicationId: string) {
         connection = await pool.getConnection();
         await createProductsTable(connection);
 
-        const rows = await connection.query("SELECT * FROM Products WHERE ProductId IN " +
+        const rows = await connection.query("SELECT * FROM Products WHERE Id IN " +
                                             "(SELECT ProductId FROM Applications WHERE Id = ?)",
                                             [applicationId || -1]);
 
