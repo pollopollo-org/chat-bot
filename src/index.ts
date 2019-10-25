@@ -210,7 +210,6 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
-                    const devAddress = "0YOAWXCIQE7K5YXDJBEKQ22VNSBM7YRKT";
 
                     device.sendMessageToDevice(
                         contract.DonorDevice,
