@@ -171,7 +171,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         contract.ProducerDevice,
                         "text",
                         `The Receiver of your product "${product.Title}" has confirmed reception. In around 15 minutes you will be able ` +
-                        `to extract your payment from the contract starting with ${sharedAddress.substring(0, 4)}.`
+                        `to extract your payment from the contract starting with "${sharedAddress.substring(0, 4)}".`
                     );
                 }
             });
