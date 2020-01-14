@@ -211,6 +211,13 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         "You will receive a message once the donation has been fully processed."
                     );
                 }
+                else {
+                    device.sendMessageToDevice(
+                        contract.DonorDevice,
+                        "text",
+                        "ERROR: The contract is already completed"
+                    );
+                }
             });
         }));
     });
