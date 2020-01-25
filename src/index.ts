@@ -37,8 +37,8 @@ eventBus.on("headless_wallet_ready", () => {
     cron.schedule("* 0 * * *", publishTimestamp);
     state.wallet.setupChatEventHandlers();
 
-    publishTimestamp()
-        .catch(err => { console.error(err); });
+    //publishTimestamp()
+    //    .catch(err => { console.error(err); });
 });
 
 /**
