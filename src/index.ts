@@ -210,6 +210,12 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         `Your donation of ${contract.Price}$ has now been submitted. ` +
                         "You will receive a message once the donation has been fully processed."
                     );
+                } else {
+                    device.sendMessageToDevice(
+                        contract.DonorDevice,
+                        "text",
+                        "ERROR: The contract is already completed"
+                    );
                 }
             });
         }));

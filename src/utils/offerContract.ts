@@ -117,11 +117,6 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 // Store a local copy of the contract in order to be able to retrieve
                 // metadata later on
                 await storeContract(sharedAddress, Number.parseInt(applicationId, 10), timestamp, confirmKey, donor, producer, price);
-
-                // And ensure that the Application gets locked on the PolloPollo
-                // website in order to avoid multiple donations to the same application
-                // while transaction becomes stable
-                await updateApplicationStatus(applicationId, ApplicationStatus.LOCKED);
             }
         });
     });
