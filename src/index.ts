@@ -27,6 +27,7 @@ eventBus.on("headless_wallet_ready", () => {
     cron.schedule("* 0 * * *", publishTimestamp);
     state.wallet.setupChatEventHandlers();
 
+    const placeholder = wallet;
 });
 
 /**
