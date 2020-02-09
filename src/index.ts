@@ -174,8 +174,9 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
 
                 try {
                     connection = await pool.getConnection();
-                    product = await connection.query("SELECT p.Title FROM Applications a JOIN Products p " +
-                                                     "ON a.ProductId = p.Id WHERE a.Id = ?",
+                    product = await connection.query("SELECT p.Title,u.Firstname,u.u.Surname FROM Applications a" +
+                                                    "JOIN Products p ON a.ProductId = p.Id" +
+                                                    "JOIN Users u on a.UserId = u.Id WHERE a.Id = ?",
                                                      [contract.ApplicationId]);
                 } catch (err) {
                     console.log(err);
@@ -189,9 +190,12 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver of ${product} has confirmed reception. Another message will notify you when you ` +
-                        `can extract the payment from the contract starting with ${contract.SharedAddress.substrin(0, 4)}.`
+                        `${product.Firstname} ${product.Surname} just confirmed receipt of ` +
+                        `${product.title} + worth ${contract.Price} and ` +
+                        `the funds on smart wallet starting with ${contract.SharedAddress.substrin(0, 4)} ` +
+                        `can be withdrawn now.`
                     );
+
                 }
             });
         });
