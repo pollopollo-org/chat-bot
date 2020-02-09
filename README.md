@@ -27,7 +27,7 @@ In order to deploy to chat-bot to the server then please go through the followin
 
 1. Run the command `tsc`in the root of the project
 2. Connect to the server and navigate to the `headless-obyte` folder
-3. Upload all files in the project *expect* the folder `node_modules` and `conf.js`
+3. Upload all files in the project *except* the folder `node_modules` and `conf.js`
 4. Run `npm install` on the server within the `headless-obyte` folder
 5. Run the command `npm run start` to start the bot
 

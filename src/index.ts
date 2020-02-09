@@ -13,21 +13,11 @@ import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceiver
 import { state } from "./state";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
+import { getProductAndReceiverByApplicationId, getProductByApplicationId } from "./utils/getProduct";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { completeContract } from "./utils/storeContract";
-
-const mariadb = require("mariadb");
-const dbData = require("../../dbData");
-
-const pool = mariadb.createPool({
-    host: dbData.host,
-    user: dbData.user,
-    password: dbData.password,
-    database: dbData.database,
-    connectionLimit: 5
-});
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
@@ -37,6 +27,7 @@ eventBus.on("headless_wallet_ready", () => {
     cron.schedule("* 0 * * *", publishTimestamp);
     state.wallet.setupChatEventHandlers();
 
+    const placeholder = wallet;
 });
 
 /**
@@ -169,28 +160,18 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
         db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
             rows.forEach(async (row) => {
                 const contract = await getContractByConfirmKey(row.feed_name);
-                let connection;
-                let product;
 
-                try {
-                    connection = await pool.getConnection();
-                    product = await connection.query("SELECT p.Title FROM Applications a JOIN Products p " +
-                                                     "ON a.ProductId = p.Id WHERE a.Id = ?",
-                                                     [contract.ApplicationId]);
-                } catch (err) {
-                    console.log(err);
-                } finally {
-                    // End the process after the job finishes
-                    if (connection) {
-                        connection.end();
-                    }
-                }
                 if (contract) {
+                    const product = await getProductAndReceiverByApplicationId(contract.ApplicationId);
+                    const sharedAddress = String(contract.SharedAddress);
+
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver of ${product} has confirmed reception. Another message will notify you when you ` +
-                        `can extract the payment from the contract starting with ${contract.SharedAddress.substrin(0, 4)}.`
+                        `The Receiver (${product.Firstname} ${product.Surname}) of your product ` +
+                        `"${product.Title}" has confirmed reception. ` +
+                        `In around 15 minutes you will be able ` +
+                        `to extract your payment from the contract starting with "${sharedAddress.substring(0, 4)}".`
                     );
                 }
             });
@@ -229,30 +210,19 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
         db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
             rows.forEach(async (row) => {
                 const contract = await getContractByConfirmKey(row.feed_name);
-                let connection;
-                let product;
 
-                try {
-                    connection = await pool.getConnection();
-                    product = await connection.query("SELECT p.Title FROM Applications a JOIN Products p " +
-                                                     "ON a.ProductId = p.Id WHERE a.Id = ?",
-                                                     [contract.ApplicationId]);
-                } catch (err) {
-                    console.log(err);
-                } finally {
-                    // End the process after the job finishes
-                    if (connection) {
-                        connection.end();
-                    }
-                }
+                // Did reception of a product become stable?
+                if (contract && contract.Completed === 1) {
+                    const sharedAddress = String(contract.SharedAddress);
+                    const product = await getProductAndReceiverByApplicationId(contract.ApplicationId);
 
-                if (contract) {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The confirmation of reception of ${product} is now final and you can withdraw the donated funds` +
-                        ` from smart wallet starting with ${contract.SharedAddress.substring(0, 4)} - to withdraw funds, ` +
-                        `switch to this contract and use the Send-button to send the funds (${contract.Price}USD) to your main wallet.`
+                        `${product.Firstname} ${product.Surname} just confirmed receipt of ` +
+                        `${product.title} + worth ${contract.Price} and ` +
+                        `the funds on smart wallet starting with ${contract.SharedAddress.substrin(0, 4)} ` +
+                        `can be withdrawn now.`
                     );
                 }
             });
@@ -263,14 +233,26 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
             rows.forEach(async (row) => {
                 const contract = await getContractBySharedAddress(row.address);
 
-                if (contract) {
+                // Did a donation become stable?
+                if (contract && contract.Completed !== 1) {
                     await completeContract(contract.ApplicationId);
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
+                    const sharedAddress = String(contract.SharedAddress);
+                    const product = await getProductByApplicationId(contract.ApplicationId);
 
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
-                        "Your donation has now been processed. Thank you for your contribution!"
+                        "Your donation has now been processed. Thank you for your contribution! " +
+                        `Should the receiver not pick up the product within 30 days, ` +
+                        ` you may claim the money from the contract starting with "${sharedAddress.substring(0, 4)}".`
+                    );
+
+                    device.sendMessageToDevice(
+                        contract.ProducerDevice,
+                        "text",
+                        `A receiver has received a donation for you product "${product.Title}", ` +
+                        `and will probably pick up the product within 30 days. `
                     );
                 }
             });
