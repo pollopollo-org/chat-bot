@@ -1,3 +1,5 @@
+import { logEvent, LoggableEvents } from "./logEvent";
+
 const mariadb = require("mariadb");
 const dbData = require("../../dbData");
 
@@ -55,7 +57,7 @@ export async function getProductByApplicationId(applicationId: string) {
             return rows[0];
         }
     } catch (err) {
-        console.error(err);
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
     } finally {
         connection.close();
     }
@@ -84,7 +86,7 @@ export async function getProductAndReceiverByApplicationId(applicationId: string
             return rows[0];
         }
     } catch (err) {
-        console.error(err);
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
     } finally {
         connection.close();
     }

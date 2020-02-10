@@ -42,6 +42,19 @@ async function init() {
             if (isStale) {
                 await conn.query("UPDATE Applications SET Status = 0, LastModified = NOW() WHERE Id = ?", [application.Id]);
                 
+                const contract = conn.query("SELECT * FROM Contracts where ApplicationId = ?", [application.Id]);
+
+                let logContract = `[${new Date().toUTCString()} - FOUND_STALE_CONTRACT] for application with id '${application.Id}' ` +
+                                    `with Completed '${contract.Completed}' and confirm_key '${contract.ConfirmKey}'`;
+
+                if (await exists(logFile)) {
+                    const release = await lockfile.lock(logFile);
+                    await appendFile(logFile, `\n\n${logContract}`);
+                    await release();
+                } else {
+                    await createFile(logFile, logContract);
+                }
+
                 await conn.query("DELETE FROM Contracts where ApplicationId = ?", [application.Id]);
 
                 let message = `[${new Date().toUTCString()} - FOUND_STALE_APPLICATION] More than an hour has passed since `;

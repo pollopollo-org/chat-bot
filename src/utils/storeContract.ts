@@ -1,4 +1,5 @@
 import device = require("ocore/device.js");
+import { logEvent, LoggableEvents } from "./logEvent";
 import { Participant } from "./offerContract";
 
 const mariadb = require("mariadb");
@@ -74,7 +75,7 @@ export async function storeContract(
             ]
         );
     } catch (err) {
-        console.log(err);
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
     } finally {
         // End the process after the job finishes
         if (connection) {
@@ -93,7 +94,7 @@ export async function completeContract(applicationId: string) {
         connection = await pool.getConnection();
         await connection.query("UPDATE Contracts SET Completed = 1 WHERE ApplicationId = ?", [applicationId]);
     } catch (err) {
-        console.log(err);
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
     } finally {
         // End the process after the job finishes
         if (connection) {
@@ -124,7 +125,7 @@ export async function notifyProducerOfFunds(applicationId: string) {
                                                 [applicationId]);
         producerDevice = await connection.query("SELECT ProducerDevice FROM Contracts WHERE ApplicationID = ?", [applicationId]);
     } catch (err) {
-        console.log(err);
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
     } finally {
         // End the process after the job finishes
         if (connection) {

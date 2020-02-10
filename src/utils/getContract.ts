@@ -1,3 +1,4 @@
+import { logEvent, LoggableEvents } from "./logEvent";
 import { createContractsTable } from "./storeContract";
 
 const mariadb = require("mariadb");
@@ -27,7 +28,7 @@ export async function getContractBySharedAddress(sharedAddress: string) {
             return rows[0];
         }
     } catch (err) {
-        console.error(err);
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
     } finally {
         connection.close();
     }
