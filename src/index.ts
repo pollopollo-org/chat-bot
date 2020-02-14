@@ -220,8 +220,8 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         contract.ProducerDevice,
                         "text",
                         `${product.Firstname} ${product.Surname} just confirmed receipt of ` +
-                        `${product.title} + worth ${contract.Price} and ` +
-                        `the funds on smart wallet starting with ${contract.SharedAddress.substrin(0, 4)} ` +
+                        `${product.Title} + worth ${contract.Price} and ` +
+                        `the funds on smart wallet starting with ${contract.SharedAddress.substring(0, 4)} ` +
                         `can be withdrawn now.`
                     );
                 }
