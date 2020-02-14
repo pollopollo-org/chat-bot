@@ -116,7 +116,16 @@ export function offerContract(donor: Participant, producer: Participant, price: 
 
                 // Store a local copy of the contract in order to be able to retrieve
                 // metadata later on
-                await storeContract(sharedAddress, Number.parseInt(applicationId, 10), timestamp, confirmKey, donor, producer, price);
+                await storeContract(
+                    sharedAddress,
+                    Number.parseInt(applicationId, 10),
+                    timestamp,
+                    confirmKey,
+                    donor,
+                    producer,
+                    price,
+                    arrPayments[0].amount
+                );
             }
         });
     });

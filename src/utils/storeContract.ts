@@ -47,7 +47,8 @@ export async function storeContract(
     confirmKey: string,
     donor: Participant,
     producer: Participant,
-    price: number
+    price: number,
+    bytes: number
 ) {
     let connection;
 
@@ -57,7 +58,7 @@ export async function storeContract(
 
         //Insert the contract into DB
         await connection.query(
-            "INSERT INTO Contracts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Contracts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 applicationId,
                 timestamp
@@ -71,7 +72,8 @@ export async function storeContract(
                 donor.deviceAddress,
                 producer.walletAddress,
                 producer.deviceAddress,
-                price
+                price,
+                bytes
             ]
         );
     } catch (err) {
