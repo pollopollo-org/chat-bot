@@ -77,7 +77,7 @@ export async function getProductAndReceiverByApplicationId(applicationId: string
          * await createProductsTable(connection);
          */
 
-        const rows = await connection.query("SELECT p.Title,u.Firstname,u.u.Surname FROM Applications a" +
+        const rows = await connection.query("SELECT p.Title,u.Firstname,u.Surname FROM Applications a" +
                                             "JOIN Products p ON a.ProductId = p.Id" +
                                             "JOIN Users u on a.UserId = u.Id WHERE a.Id = ?",
                                             [applicationId || -1]);
