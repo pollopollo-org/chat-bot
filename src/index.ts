@@ -168,7 +168,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver (${product.Firstname} ${product.Surname}) of your product ` +
+                        `The Receiver (${product.FirstName} ${product.SurName}) of your product ` +
                         `"${product.Title}" has confirmed reception. ` +
                         `In around 15 minutes you will be able ` +
                         `to extract your payment from the contract starting with "${sharedAddress.substring(0, 4)}".`
@@ -219,7 +219,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `${product.Firstname} ${product.Surname} just confirmed receipt of ` +
+                        `${product.FirstName} ${product.SurName} just confirmed receipt of ` +
                         `${product.title} + worth ${contract.Price} and ` +
                         `the funds on smart wallet starting with ${sharedAddress.substring(0, 4)} ` +
                         `can be withdrawn now.`
