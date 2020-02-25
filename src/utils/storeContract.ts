@@ -86,6 +86,36 @@ export async function storeContract(
 }
 
 /**
+ * Function for the GBYTE_USD exchange rate from Obyte network in our database
+ * @param exchangeRate The GBYTE_USD rate
+ */
+export async function updateByteExchangeRate(
+    exchangeRate: number
+) {
+    let connection;
+
+    try {
+        connection = await pool.getConnection();
+        await createContractsTable(connection);
+
+        //Update the OByte into DB
+        await connection.query(
+            "UPDATE ByteExchangeRate Set GBYTE_USD = ? where Id = 1",
+            [
+                exchangeRate
+            ]
+        );
+    } catch (err) {
+        logEvent(LoggableEvents.UNKNOWN, { error: err });
+    } finally {
+        // End the process after the job finishes
+        if (connection) {
+            connection.end();
+        }
+    }
+}
+
+/**
  * Method to be executed once a contract is finalized (i.e. payment has been received)
  */
 export async function completeContract(applicationId: string) {
