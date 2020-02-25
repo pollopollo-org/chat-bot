@@ -189,7 +189,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         `Your donation of ${contract.Price}$ has now been submitted. ` +
                         "You will receive a message once the donation has been fully processed."
                     );
-                } else {
+                } else if (contract && contract.Completed === 1) {
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
@@ -251,8 +251,10 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `A receiver has received a donation for you product "${product.Title}", ` +
-                        `and will probably pick up the product within 30 days. `
+                        `A donation has been made for \"${product.Title}\" worth ${contract.Price}USD ` +
+                        `and funds are now stored on the smart contract ` +
+                        `starting with \"${sharedAddress.substring(0, 4)}\". ` +
+                        `They will be available to you when the recipient confirms reception of the product.`
                     );
                 }
             });
