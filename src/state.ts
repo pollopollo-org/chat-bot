@@ -1,5 +1,6 @@
 import eventBus = require("ocore/event_bus.js");
 import network = require("ocore/network.js");
+import { updateByteExchangeRate } from "./utils/storeContract";
 const headlessWallet = require("headless-obyte");
 
 /**
@@ -14,6 +15,8 @@ export const state = {
 /**
  * Ensure exchangeRates are always kept up to date
  */
-eventBus.on("rates_updated", () => {
+eventBus.on("rates_updated", async () => {
     state.rates = network.exchangeRates;
+
+    await updateByteExchangeRate(network.exchangeRates.GBYTE_USD);
 });
