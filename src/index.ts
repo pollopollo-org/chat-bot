@@ -24,7 +24,7 @@ import { completeContract } from "./utils/storeContract";
  */
 eventBus.on("headless_wallet_ready", () => {
     // Ensure that the bot checks once a day if any contracts have expired.
-    cron.schedule("* 0 * * *", publishTimestamp);
+    // cron.schedule("* 0 * * *", publishTimestamp);
     state.wallet.setupChatEventHandlers();
 
     const placeholder = wallet;
