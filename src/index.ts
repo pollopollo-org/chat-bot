@@ -106,6 +106,13 @@ eventBus.on("text", async (fromAddress, message) => {
             const contractData = await getContractData(applicationId, fromAddress);
 
             if (contractData) {
+                device.sendMessageToDevice(
+                    fromAddress,
+                    "text",
+                    "Thank you - the contract is now ready. To send your donation, click on this Payment Request." +
+                    "Make sure to review the conditions before clicking the Send-button at the bottom."
+                );
+           
                 offerContract(
                     { walletAddress: walletAddress, deviceAddress: fromAddress },
                     { walletAddress: contractData.producerWallet, deviceAddress: contractData.producerDevice },
