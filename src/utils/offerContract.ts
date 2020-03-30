@@ -110,7 +110,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 const objPaymentRequest = { payments: arrPayments, definitions: assocDefinitions };
                 const paymentJson = JSON.stringify(objPaymentRequest);
                 const paymentJsonBase64 = new Buffer(paymentJson).toString("base64");
-                const paymentRequestCode = `payment: ${paymentJsonBase64}`;
+                const paymentRequestCode = `payment:${paymentJsonBase64}`;
                 const paymentRequestText = `[Please pay your donation here](${paymentRequestCode})`;
                 device.sendMessageToDevice(donor.deviceAddress, "text", paymentRequestText);
 
