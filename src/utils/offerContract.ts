@@ -53,6 +53,13 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                     "timestamp",
                     ">",
                     Date.now() + 1000 * 60 * 60 * 24 * 30
+                ]],
+                ["not"], [
+                    "in data feed", [
+                        [botWallet],
+                        "=",
+                        "confirmed"
+                    ]
                 ]]
             ]],
             ["and", [
