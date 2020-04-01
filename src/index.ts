@@ -147,7 +147,9 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
-
+        case "post":
+            await publishTimestamp();
+            break;
         default:
             device.sendMessageToDevice(
                 fromAddress,
