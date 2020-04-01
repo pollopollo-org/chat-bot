@@ -48,14 +48,9 @@ export function offerContract(donor: Participant, producer: Participant, price: 
             ]],
             ["and", [
                 ["address", donor.walletAddress],
-                ["in data feed", [
-                    [botWallet],
-                    "timestamp",
-                    ">",
-                    Date.now() + 1000 * 60 * 60 * 24 * 30
-                ]],
-                ["not"], [
-                    "in data feed", [
+                ["timestamp", [">", Date.now() + 1000 * 60 * 60 * 24 * 30]],
+                ["not"], 
+                    ["in data feed", [
                         [botWallet],
                         "=",
                         "confirmed"
@@ -64,12 +59,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
             ]],
             ["and", [
                 ["address", botWallet],
-                ["in data feed", [
-                    [botWallet],
-                    "timestamp",
-                    ">",
-                    Date.now() + 1000 * 60 * 60 * 24 * 30 * 3
-                ]]
+                ["timestamp", [">", Date.now() + 1000 * 60 * 60 * 24 * 30 * 3]]
             ]]
         ]];
 
