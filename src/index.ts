@@ -4,6 +4,7 @@ import device = require("ocore/device.js");
 import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
 import wallet = require("ocore/wallet");
+import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses");
 
 import "./listener";
 
@@ -147,9 +148,37 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
+            
         case "post":
             await publishTimestamp();
             break;
+        /*
+        ** Function allowing a donor or a Producer to request to have smart contract definitions resent to them.
+        ** This, of course, will only work if the chat bot can identify the device address that was used to create them with.
+        ** It means that even if a backup from a point in time prior to the creation of the smart contract is restored,
+        ** the user can successfully restore the otherwise lost contracts. 
+        ** IMPORTANT: It right now only works with Bytes - if other currencies are introduced, this must be reworked!
+        */
+        case "resend":
+            walletDefinedByAddresses.sendToPeerAllSharedAddressesHavingUnspentOutputs(fromAddress, "text", {
+                ifFundedSharedAddress: function(numberOfContracts) {
+                    device.sendMessageToDevice(
+                        fromAddress,
+                        "text",
+                        `Found and resent ${numberOfContracts} smart contracts that have Bytes on them to your wallet.` +
+                        `Please be aware that contracts can only be restored to the same wallet they were originally sent to.`);
+                },
+                ifNoFundedSharedAddress: function() {
+                    device.sendMessageToDevice(
+                        fromAddress,
+                        "text",
+                        `No smart contracts with Bytes on it were found. Please be aware, that smart contracts can only be resent to the wallet they were sent to originally.` +
+                        `If you have an old backup or even the seed words, you can try to restore that and request resending the smart contracts again.`
+                    );
+                }
+            });
+            break;
+            
         default:
             device.sendMessageToDevice(
                 fromAddress,
@@ -192,6 +221,10 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 const contract = await getContractBySharedAddress(row.address);
 
                 if (contract && contract.Completed !== 1) {
+                    // TODO - Check if the received amount matches the expected amount on the Contract before confirming.
+                    // If it is too little: Return it (minus a fee) to the donor
+                    // If it is too much: Return the surplus (minus a fee) to the donor
+                    // If there's an exact match, continue...                    
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
