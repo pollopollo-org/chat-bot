@@ -148,6 +148,7 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
+            
         case "post":
             await publishTimestamp();
             break;
@@ -177,6 +178,7 @@ eventBus.on("text", async (fromAddress, message) => {
                 }
             });
             break;
+            
         default:
             device.sendMessageToDevice(
                 fromAddress,
@@ -222,7 +224,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                     // TODO - Check if the received amount matches the expected amount on the Contract before confirming.
                     // If it is too little: Return it (minus a fee) to the donor
                     // If it is too much: Return the surplus (minus a fee) to the donor
-                    // If there's an exact match, continue...
+                    // If there's an exact match, continue...                    
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
