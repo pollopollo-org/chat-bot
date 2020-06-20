@@ -3,7 +3,6 @@ import db = require("ocore/db");
 import device = require("ocore/device.js");
 import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
-import wallet = require("ocore/wallet");
 
 import "./listener";
 
@@ -13,7 +12,6 @@ import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceiver
 import { state } from "./state";
 import { applicationCache, donorCache, pairingCache } from "./utils/caches";
 import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/getContract";
-import { getProductAndReceiverByApplicationId, getProductByApplicationId } from "./utils/getProduct";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
@@ -22,26 +20,27 @@ import { completeContract } from "./utils/storeContract";
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
  */
-eventBus.on("headless_wallet_ready", () => {
+eventBus.once("headless_wallet_ready", () => {
     // Ensure that the bot checks once a day if any contracts have expired.
-    // cron.schedule("* 0 * * *", publishTimestamp);
+    cron.schedule("* 0 * * *", publishTimestamp);
     state.wallet.setupChatEventHandlers();
 
-    const placeholder = wallet;
+    publishTimestamp()
+        .catch(err => { console.error(err); });
 });
 
 /**
  * As soon as a new user pairs to the bot, attempt to link their device address
  * to the associated PolloPollo user, based on the pairing secret.
  */
-eventBus.on("paired", async (fromAddress, pairingSecret) => {
+eventBus.once("paired", async (fromAddress, pairingSecret) => {
     // In case the pairingSecret can be parsed as an integer, that means we're
     // dealing with a donor
     const asInt = parseInt(pairingSecret, undefined);
     if (Number.isNaN(asInt) || `${asInt}`.length !== pairingSecret.length) {
         pairingCache.set(fromAddress, pairingSecret);
 
-        // ... otherwise we're dealing with a producer that attempts to link his wallet
+        // ... else we're dealing with a producer that attempts to link his wallet
         // with an account.
         device.sendMessageToDevice(
             fromAddress,
@@ -74,7 +73,7 @@ eventBus.on("paired", async (fromAddress, pairingSecret) => {
  * Listener that'll get triggered every time a user sends something to the chat-
  * bot.
  */
-eventBus.on("text", async (fromAddress, message) => {
+eventBus.once("text", async (fromAddress, message) => {
     const parsedText = message.toLowerCase();
     const walletAddress = message
         .trim()
@@ -154,7 +153,7 @@ eventBus.on("text", async (fromAddress, message) => {
 /**
  * Event send once transactions become stable
  */
-eventBus.on("new_my_transactions", async (arrUnits) => {
+eventBus.once("new_my_transactions", async (arrUnits) => {
     arrUnits.forEach((unit) => {
         // Did we confirm receival of a product?
         db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
@@ -162,16 +161,11 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 const contract = await getContractByConfirmKey(row.feed_name);
 
                 if (contract) {
-                    const product = await getProductAndReceiverByApplicationId(contract.ApplicationId);
-                    const sharedAddress = String(contract.SharedAddress);
-
                     device.sendMessageToDevice(
                         contract.ProducerDevice,
                         "text",
-                        `The Receiver (${product.FirstName} ${product.SurName}) of your product ` +
-                        `"${product.Title}" has confirmed reception. ` +
-                        `In around 15 minutes you will be able ` +
-                        `to extract your payment from the contract starting with "${sharedAddress.substring(0, 4)}".`
+                        "The Receiver of your product has confirmed reception. In around 15 minutes you will be able " +
+                        "to extract your payment from the contract."
                     );
                 }
             });
@@ -189,12 +183,6 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                         `Your donation of ${contract.Price}$ has now been submitted. ` +
                         "You will receive a message once the donation has been fully processed."
                     );
-                } else if (contract && contract.Completed === 1) {
-                    device.sendMessageToDevice(
-                        contract.DonorDevice,
-                        "text",
-                        "ERROR: The contract is already completed"
-                    );
                 }
             });
         }));
@@ -204,57 +192,21 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
 /**
  * Event send once transactions become stable
  */
-eventBus.on("my_transactions_became_stable", async (arrUnits) => {
+eventBus.once("my_transactions_became_stable", async (arrUnits) => {
     arrUnits.forEach((unit) => {
-        // Is the producer able to claim funds?
-        db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
-            rows.forEach(async (row) => {
-                const contract = await getContractByConfirmKey(row.feed_name);
-
-                // Did reception of a product become stable?
-                if (contract && contract.Completed === 1) {
-                    const sharedAddress = String(contract.SharedAddress);
-                    const product = await getProductAndReceiverByApplicationId(contract.ApplicationId);
-
-                    device.sendMessageToDevice(
-                        contract.ProducerDevice,
-                        "text",
-                        `${product.FirstName} ${product.SurName} just confirmed receipt of ` +
-                        `${product.title} + worth ${contract.Price} and ` +
-                        `the funds on smart wallet starting with ${sharedAddress.substring(0, 4)} ` +
-                        `can be withdrawn now.`
-                    );
-                }
-            });
-        });
-
         // Did a donation become stable?
         db.query("SELECT address FROM outputs WHERE unit = ?", [unit], (rows => {
             rows.forEach(async (row) => {
                 const contract = await getContractBySharedAddress(row.address);
 
-                // Did a donation become stable?
-                if (contract && contract.Completed !== 1) {
+                if (contract) {
                     await completeContract(contract.ApplicationId);
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
-                    const sharedAddress = String(contract.SharedAddress);
-                    const product = await getProductByApplicationId(contract.ApplicationId);
 
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
-                        "Your donation has now been processed. Thank you for your contribution! " +
-                        `Should the receiver not pick up the product within 30 days, ` +
-                        ` you may claim the money from the contract starting with "${sharedAddress.substring(0, 4)}".`
-                    );
-
-                    device.sendMessageToDevice(
-                        contract.ProducerDevice,
-                        "text",
-                        `A donation has been made for \"${product.Title}\" worth ${contract.Price}USD ` +
-                        `and funds are now stored on the smart contract ` +
-                        `starting with \"${sharedAddress.substring(0, 4)}\". ` +
-                        `They will be available to you when the recipient confirms reception of the product.`
+                        "Your donation has now been processed. Thank you for your contribution!"
                     );
                 }
             });

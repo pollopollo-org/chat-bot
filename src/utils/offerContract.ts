@@ -34,10 +34,8 @@ export function offerContract(donor: Participant, producer: Participant, price: 
 
         // Money can be extracted via the following criteria
         // 1. Producer can extract money if the Receiver has indicated reception of goods
-        // 2. Donor can extract money if more than 30 days have passed
-        // 3. Bot can spend money if more then 90 days have passed (safety mechanism)
-        // 4. Bot can spend money on behalf of producer but only if conditions for 1 are met and the spend is to the producer's wallet
-        // 5. Bot can spend money on behalf of donor but only if conditions for 2 are met and the spend is to the donor's wallet
+        // 2. Donor can extract money if more than 30 days elapses
+        // 3. Bot can extract money if more then 90 days elapses (safety valve)
         const contract = ["or", [
             ["and", [
                 ["address", producer.walletAddress],
@@ -50,49 +48,23 @@ export function offerContract(donor: Participant, producer: Participant, price: 
             ]],
             ["and", [
                 ["address", donor.walletAddress],
-                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30)]],
-                ["not"], 
-                    ["in data feed", [
-                        [botWallet],
-                        "=",
-                        "confirmed"
-                    ]
-                ]]
-            ]],
-            // Allow the chatbot to withdraw funds to itself if 90 days have passed and neither Donor or Producer withdraw
-            // This is the only safety mechanism we have and has proven to be needed if either donor or producer lose
-            // access to their wallet due to breaking phones, or due to theft of the device they have their wallet on.
-            // We need this to avoid funds being stuck for all eternity. Any funds withdrawn by the chatbot will be
-            // donated to the next oldest open application.
-            ["and", [
-                ["address", botWallet],
-                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30 * 3)]]
-            ]],
-            // Allow the chatbot to withdraw funds to the producer if all conditions for that are met
-            ["and", [
-                ["address", botWallet],
-                ["has", {what: "output", asset: "base", address: producer.walletAddress}],
                 ["in data feed", [
                     [botWallet],
-                    confirmKey,
-                    "=",
-                    "confirmed"
+                    "timestamp",
+                    ">",
+                    Date.now() + 1000 * 60 * 60 * 24 * 30
                 ]]
             ]],
-            // Allow the chatbot to withdraw funds to the donor if all conditions for that are met
             ["and", [
                 ["address", botWallet],
-                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30)]],
-                ["has", {what: "output", asset: "base", address: donor.walletAddress}],
-                ["not"], [
-                        "in_data_feed", [ 
-                            [botWallet], 
-                            "=", 
-                            "confirmed" 
-                        ]
-                    ]
+                ["in data feed", [
+                    [botWallet],
+                    "timestamp",
+                    ">",
+                    Date.now() + 1000 * 60 * 60 * 24 * 30 * 3
+                ]]
             ]]
-        ];
+        ]];
 
         const assocSignersByPath = {
             "r.0.0": {
@@ -138,7 +110,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 const objPaymentRequest = { payments: arrPayments, definitions: assocDefinitions };
                 const paymentJson = JSON.stringify(objPaymentRequest);
                 const paymentJsonBase64 = new Buffer(paymentJson).toString("base64");
-                const paymentRequestCode = `payment:${paymentJsonBase64}`;
+                const paymentRequestCode = `payment: ${paymentJsonBase64}`;
                 const paymentRequestText = `[Please pay your donation here](${paymentRequestCode})`;
                 device.sendMessageToDevice(donor.deviceAddress, "text", paymentRequestText);
 

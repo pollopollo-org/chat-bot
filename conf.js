@@ -1,39 +1,31 @@
 /*jslint node: true */
 "use strict";
-exports.port = null;
+
+//exports.port = 6611;
 //exports.myUrl = 'wss://mydomain.com/bb';
 exports.bServeAsHub = false;
-exports.bLight = true;
-exports.bFaster = false;
+exports.bLight = false;
+
 
 exports.storage = 'sqlite';
 
-// TOR is recommended. Uncomment the next two lines to enable it
-//exports.socksHost = '127.0.0.1';
-//exports.socksPort = 9050;
 
 exports.hub = process.env.testnet ? 'obyte.org/bb-test' : 'obyte.org/bb';
-exports.deviceName = 'TestPolloPollo.org';
-exports.permanent_pairing_secret = '*'; // * allows to pair with any code, the code is passed as 2nd param to the pairing event handler
-exports.control_addresses = [
-    "0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3",
-    "05KURTND3Z5JJKOS5XSDI32TC7W5HWTZP",
-    "0Y3DN63A2J5A4HCUTVEN6BBE5AIUGFZIL",
-    "06DWOVWWHCFEU5AHSYCF7UMQOM3HA55HB",
-    "07MUDL7KX4BJVPZE6EH2WB6AWZ7MB7X2V",
-    "0YOAWXCIQE7K5YXDJBEKQ22VNSBM7YRKT",
-    "0JAEPNFYK6QSD3Q73UQ6CYDEMRUQ5T5DW",
-    "0K7PG7RU6HBHDB6UK4IVJ5GJCK5Q37JXZ",
-    "026ZBBXLRUPGG2YG7E3HGWIW4XDHOCNGB"
-];
-
-exports.bIgnoreUnpairRequests = true;
-exports.bSingleAddress = false;
-exports.bStaticChangeAddress = true;
+exports.deviceName = 'PolloPollo';
+exports.permanent_pairing_secret = '*';
+exports.control_addresses = ['DEVICE ALLOWED TO CHAT'];
+exports.payout_address = 'WHERE THE MONEY CAN BE SENT TO';
 exports.KEYS_FILENAME = 'keys.json';
 
-// emails
-exports.admin_email = '';
-exports.from_email = '';
+// where logs are written to (absolute path).  Default is log.txt in app data directory
+//exports.LOG_FILENAME = '/dev/null';
+
+// consolidate unspent outputs when there are too many of them.  Value of 0 means do not try to consolidate
+exports.MAX_UNSPENT_OUTPUTS = 0;
+exports.CONSOLIDATION_INTERVAL = 3600*1000;
+
+// this is for runnining RPC service only, see tools/rpc_service.js
+exports.rpcInterface = '127.0.0.1';
+exports.rpcPort = '6332';
 
 console.log('finished headless conf');
