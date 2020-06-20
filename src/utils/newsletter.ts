@@ -37,7 +37,7 @@ export async function unsubscribe(deviceAddress: string) {
 /*
  * Method that sends the weekly newsletter to all recipients that subscribed to it
  */
-async function sendNewsletter() {
+export async function sendNewsletter() {
 
     let conn = await pool.getConnection();
     let PastWeekDonations = 0;
@@ -122,7 +122,7 @@ async function sendNewsletter() {
             }
 
     });
-    
+
     logEvent(LoggableEvents.UNKNOWN, { error: "Weekly newsletters successfully sent." });
 
     if (conn) {
