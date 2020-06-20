@@ -4,6 +4,7 @@ import device = require("ocore/device.js");
 import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
 import wallet = require("ocore/wallet");
+import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses");
 
 import "./listener";
 
@@ -16,8 +17,8 @@ import { getContractByConfirmKey, getContractBySharedAddress } from "./utils/get
 import { getProductAndReceiverByApplicationId, getProductByApplicationId } from "./utils/getProduct";
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
-import { publishTimestamp } from "./utils/publishTimestamp";
 import { completeContract } from "./utils/storeContract";
+import { subscribe, unsubscribe } from "./utils/newsletter";
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
@@ -140,13 +141,76 @@ eventBus.on("text", async (fromAddress, message) => {
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
             break;
+        /*
+        ** Function allowing a donor or a Producer to request to have smart contract definitions resent to them.
+        ** This, of course, will only work if the chat bot can identify the device address that was used to create them with.
+        ** It means that even if a backup from a point in time prior to the creation of the smart contract is restored,
+        ** the user can successfully restore the otherwise lost contracts. 
+        ** IMPORTANT: It right now only works with Bytes - if other currencies are introduced, this must be reworked!
+        */
+       case "resend":
+        walletDefinedByAddresses.sendToPeerAllSharedAddressesHavingUnspentOutputs(fromAddress, "text", {
+            ifFundedSharedAddress: function(numberOfContracts) {
+                device.sendMessageToDevice(
+                    fromAddress,
+                    "text",
+                    `Found and resent ${numberOfContracts} smart contracts that have Bytes on them to your wallet.` +
+                    `Please be aware that contracts can only be restored to the same wallet they were originally sent to.`);
+            },
+            ifNoFundedSharedAddress: function() {
+                device.sendMessageToDevice(
+                    fromAddress,
+                    "text",
+                    `No smart contracts with Bytes on it were found. Please be aware, that smart contracts can only be resent to the wallet they were sent to originally.` +
+                    `If you have an old backup or even the seed words, you can try to restore that and request resending the smart contracts again.`
+                );
+            }
+        });
+        break;            
 
+        case "help":
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                `The main operations for the PolloPollo chatbot are initiated through the PolloPollo website. These are the commands you can send directly to the chatbot:`
+            );
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                `[Help](command:help): displays this message.\n` +
+                `[Subscribe](command:subscribe): subscribes you to the weekly newsletter.\n` +
+                `[Unsubscribe](command:unsubscribe): unsubscribes you from the weekly newsletter.\n` + 
+                `[Resend](command:resend): resends all smart contracts to your device.`
+            );
+            break;
+
+        case "subscribe":
+            await subscribe(fromAddress);
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                `You will now receive the weekly digest with statistics and metrics from the past week.\n` +
+                `The weekly newsletter is sent by the chat bot every Sunday.\n` +
+                `To unsubscribe, simply type [unsubscribe](command:unsubscribe)`
+            );
+            break;
+
+        case "unsubscribe":
+            await unsubscribe(fromAddress);
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                `You will no longer receive the weekly digest.\n` +
+                `If you change your mind, you can always [subscribe](command:subscribe) again.`
+            );
+            break;
+    
         default:
             device.sendMessageToDevice(
                 fromAddress,
                 "text",
-                "Your message was not understood. Please insert your wallet address by clicking (···) and chose " +
-                "'Insert my address'. Make sure to use a single address wallet."
+                "Message not understood. If you were making a donation, please insert your wallet address by clicking (···) and chose " +
+                "'Insert my address'. Make sure to use a single address wallet.\nType [help](command:help) to see available commands."
             );
     }
 });
@@ -183,6 +247,7 @@ eventBus.on("new_my_transactions", async (arrUnits) => {
                 const contract = await getContractBySharedAddress(row.address);
 
                 if (contract && contract.Completed !== 1) {
+                    // TODO - Check the amount transferred from Donor and make sure it matches the required amount.
                     device.sendMessageToDevice(
                         contract.DonorDevice,
                         "text",
