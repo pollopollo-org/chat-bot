@@ -69,7 +69,7 @@ export async function sendNewsletter() {
     });
 
     // Get the number of currently open applications
-    await conn.query("SELECT COUNT(1) AS OpenApplications FROM Applications WHERE STATUS=2", function (err, result) {
+    await conn.query("SELECT COUNT(1) AS OpenApplications FROM Applications WHERE STATUS=0", function (err, result) {
             if (err) throw err;
             OpenApplications = result[0].OpenApplications;
     });
