@@ -1,5 +1,5 @@
 const mariadb = require("mariadb");
-const dbData = require("./dbData");
+const dbData = require("../../dbData");
 
 const pool = mariadb.createPool({
     host: dbData.host,
