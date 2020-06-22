@@ -149,7 +149,7 @@ eventBus.on("text", async (fromAddress, message) => {
         ** IMPORTANT: It right now only works with Bytes - if other currencies are introduced, this must be reworked!
         */
        case "resend":
-        walletDefinedByAddresses.sendToPeerAllSharedAddressesHavingUnspentOutputs(fromAddress, "text", {
+        walletDefinedByAddresses.sendToPeerAllSharedAddressesHavingUnspentOutputs(fromAddress, "base", {
             ifFundedSharedAddress: function(numberOfContracts) {
                 device.sendMessageToDevice(
                     fromAddress,
