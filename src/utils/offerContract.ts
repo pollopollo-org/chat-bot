@@ -53,6 +53,16 @@ export function offerContract(donor: Participant, producer: Participant, price: 
             ["and", [
                 ["address", botWallet],
                 ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30 * 3)]]
+            ]],
+            ["and", [
+                ["address", botWallet],
+                ["in data feed", [
+                    [botWallet],
+                    confirmKey,
+                    "=",
+                    "confirmed"
+                ]],
+                ["has", {what: "output", asset: "base", address: donor.walletAddress}]
             ]]
         ]];
 
