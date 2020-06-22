@@ -48,21 +48,11 @@ export function offerContract(donor: Participant, producer: Participant, price: 
             ]],
             ["and", [
                 ["address", donor.walletAddress],
-                ["in data feed", [
-                    [botWallet],
-                    "timestamp",
-                    ">",
-                    Date.now() + 1000 * 60 * 60 * 24 * 30
-                ]]
+                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30)]]
             ]],
             ["and", [
                 ["address", botWallet],
-                ["in data feed", [
-                    [botWallet],
-                    "timestamp",
-                    ">",
-                    Date.now() + 1000 * 60 * 60 * 24 * 30 * 3
-                ]]
+                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30 * 3)]]
             ]]
         ]];
 
