@@ -36,6 +36,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
         // 1. Producer can extract money if the Receiver has indicated reception of goods
         // 2. Donor can extract money if more than 30 days elapses
         // 3. Bot can extract money if more then 90 days elapses (safety valve)
+        const safeFee = 1500;
         const contract = ["or", [
             ["and", [
                 ["address", producer.walletAddress],
@@ -62,7 +63,15 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                     "=",
                     "confirmed"
                 ]],
-                ["has", {what: "output", asset: "base", address: donor.walletAddress}]
+                ["has", {
+                    what: "output", 
+                    asset: "base", 
+                    amount_at_least: convertDollarToByte(price) - safeFee,
+                    address: donor.walletAddress
+                }]
+            ]],
+            ["and", [
+
             ]]
         ]];
 
