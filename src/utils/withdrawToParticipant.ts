@@ -39,9 +39,8 @@ export async function withdrawToParticipant(applicationId: string, recipient: Pa
             let connection;
             try {
                 connection = await pool.getConnection();
-                await connection.query("UPDATE Constracts SET Bytes = 0 WHERE applicationId = ?", [applicationId]);
+                await connection.query("UPDATE Contracts SET Bytes = 0 WHERE applicationId = ?", [applicationId]);
                 logEvent(LoggableEvents.UNKNOWN, {error: "Contract updated to show 0 Bytes"});
-
             } catch (err) {
                 logEvent(LoggableEvents.UNKNOWN, { error: err });
             } finally {
