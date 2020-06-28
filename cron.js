@@ -1,6 +1,8 @@
 const mariadb = require("mariadb");
 const dbData = require("./dbData");
 
+const sqlite = require("sqlite3").verbose();
+
 const fs = require("fs");
 const path = require("path");
 const lockfile = require("proper-lockfile");
@@ -8,6 +10,8 @@ const util = require("util");
 const exists = util.promisify(fs.exists);
 const appendFile = util.promisify(fs.appendFile);
 const createFile = util.promisify(fs.writeFile);
+
+import { logEvent, LoggableEvents } from "./logEvent";
 
 const pool = mariadb.createPool({
     host: dbData.host,
@@ -17,6 +21,12 @@ const pool = mariadb.createPool({
     connectionLimit: 5
 });
 
+const obyte = new sqlite.Database("../.config/chat-bot/byteball.sqlite", sqlite.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log()
+    }
+});
+
 const logFile = path.resolve("/home/pollopollo/.pollo_log");
 
 /**
@@ -24,11 +34,10 @@ const logFile = path.resolve("/home/pollopollo/.pollo_log");
  * "Locked" state for more than an hour since we at that point assume that the
  * donation has failed.
  */
-async function init() {
-    let conn;
+async function handleStaleApplications() {
 
     try {
-        conn = await pool.getConnection();
+        let conn = await pool.getConnection();
 
         // Start by retrieving all locked applicaitons
         const rows = await conn.query("SELECT * FROM Applications WHERE Status = 1");
@@ -72,13 +81,69 @@ async function init() {
     } catch (err) {
         throw err;
     } finally {
-        // End the process after the job finishes
+        // Close connection nicely when done
         if (conn) {
             conn.end();
         }
-
-        process.exit(0);
     }
+}
+
+/*
+ * Get the balance of a wallet address
+ */
+async function getbalance(sharedWallet) {
+    return new Promise(function(resolve, reject) {
+            obyte.get("select sum(amount) as amount from outputs where is_spent=0 and asset is null and address = ?", sharedWallet, (err, row) => {
+                    if (err) reject(err.message);
+                    else resolve(row.amount);
+            });
+    });
+}
+
+
+/*
+ * Update Contract and Application to reflect the change
+ */
+async function updateApplication (applicationId) {
+
+    let conn = await pool.getConnection();
+
+    // Update the contract to reflect that Bytes has been withdrawn
+    await conn.query("UPDATE Contracts set Bytes = 0 where ApplicationId = ?", applicationId);
+    // Update the Application to status 5 meaning WITHDRAWN
+    await conn.query("UPDATE Applications set Status = 5 where ApplicationId = ?", applicationId);
+}
+
+async function updateWithdrawnDonations() {
+
+    let conn = await pool.getConnection();
+    // First - Find all pending applications
+    const rows = await conn.query("SELECT a.Id, c.SharedAddress, ua.email as recipientemail, up.email as produceremail FROM Applications a left join Contracts c on a.Id = c.ApplicationId left join Users ua on a.UserId = ua.Id left join Products p on a.ProductId = p.Id left join Users up on p.UserId = up.Id WHERE a.Status=2;");
+
+    for (let i = 0; i < rows.length; i++) {
+            let walletbalance = await getbalance([rows[i].SharedAddress]); // Get wallet balance
+            if (!walletbalance) { // If the balance is zero on a pending application, the donor must have withdrawn the donated funds
+                    console.log("Donor withdrew from ApplicationId " + rows[i].Id + ". Updating Application.Status to 5 and Contract.Bytes to 0");
+                    await updateApplication([rows[i].Id]);
+            }
+    };
+    if (conn) {
+        conn.end();
+    }
+    if (obyte) {
+            obyte.close((err) => {
+                    if (err) {
+                            console.log("Error while closing db handle");
+                    }
+            });
+    }
+    process.exit(0);
+}
+
+async function init() {
+    await handleStaleApplications();
+    await updateWithdrawnDonations();
+    process.exit(0);
 }
 
 // Bootstrap cron-job!
