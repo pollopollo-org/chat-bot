@@ -104,7 +104,7 @@ async function updateApplication (applicationId) {
     // Update the contract to reflect that Bytes has been withdrawn
     await conn.query("UPDATE Contracts set Bytes = 0 where ApplicationId = ?", applicationId);
     // Update the Application to status 5 meaning WITHDRAWN
-    await conn.query("UPDATE Applications set Status = 5 where ApplicationId = ?", applicationId);
+    await conn.query("UPDATE Applications set Status = 5, LastModified = NOW() where ApplicationId = ?", applicationId);
 }
 
 async function updateWithdrawnDonations() {
