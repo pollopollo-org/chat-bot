@@ -18,6 +18,7 @@ import { getProductAndReceiverByApplicationId, getProductByApplicationId } from 
 import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { completeContract } from "./utils/storeContract";
+import { publishTimestamp } from "./utils/publishTimestamp";
 import { subscribe, unsubscribe } from "./utils/newsletter";
 
 /**
@@ -140,6 +141,10 @@ eventBus.on("text", async (fromAddress, message) => {
 
         case "receivers":
             await returnAmountOfReceivers(fromAddress);
+            break;
+
+        case "post":
+            await publishTimestamp();
             break;
         /*
         ** Function allowing a donor or a Producer to request to have smart contract definitions resent to them.
