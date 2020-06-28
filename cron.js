@@ -11,8 +11,6 @@ const exists = util.promisify(fs.exists);
 const appendFile = util.promisify(fs.appendFile);
 const createFile = util.promisify(fs.writeFile);
 
-import { logEvent, LoggableEvents } from "./logEvent";
-
 const pool = mariadb.createPool({
     host: dbData.host,
     user: dbData.user,
@@ -80,11 +78,6 @@ async function handleStaleApplications() {
         }
     } catch (err) {
         throw err;
-    } finally {
-        // Close connection nicely when done
-        if (conn) {
-            conn.end();
-        }
     }
 }
 
@@ -123,10 +116,27 @@ async function updateWithdrawnDonations() {
     for (let i = 0; i < rows.length; i++) {
             let walletbalance = await getbalance([rows[i].SharedAddress]); // Get wallet balance
             if (!walletbalance) { // If the balance is zero on a pending application, the donor must have withdrawn the donated funds
-                    console.log("Donor withdrew from ApplicationId " + rows[i].Id + ". Updating Application.Status to 5 and Contract.Bytes to 0");
+                    
                     await updateApplication([rows[i].Id]);
+
+                    let message = "Donor withdrew from ApplicationId " + rows[i].Id + ". Updating Application.Status to 5 and Contract.Bytes to 0";
+                    if (await exists(logFile)) {
+                        const release = await lockfile.lock(logFile);
+                        await appendFile(logFile, `\n\n${message}`);
+                        await release();
+                    } else {
+                        await createFile(logFile, message);
+                    } 
             }
     };
+}
+
+async function init() {
+    
+    await handleStaleApplications();
+
+    await updateWithdrawnDonations();
+
     if (conn) {
         conn.end();
     }
@@ -137,12 +147,6 @@ async function updateWithdrawnDonations() {
                     }
             });
     }
-    process.exit(0);
-}
-
-async function init() {
-    await handleStaleApplications();
-    await updateWithdrawnDonations();
     process.exit(0);
 }
 
