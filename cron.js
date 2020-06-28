@@ -78,10 +78,6 @@ async function handleStaleApplications() {
         }
     } catch (err) {
         throw err;
-    } finally {
-        if (conn) {
-            conn.end();
-        }
     }
 }
 
@@ -146,7 +142,6 @@ async function updateWithdrawnDonations() {
 async function init() {
     
     await handleStaleApplications();
-
     await updateWithdrawnDonations();
 
     if (obyte) {
