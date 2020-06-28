@@ -37,6 +37,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
         // 2. Donor can extract money if more than 30 days elapses
         // 3. Bot can extract money if more then 90 days elapses (safety valve)
         const safeFee = 1500;
+        const amountInBytes = convertDollarToByte(price);
         const contract = ["or", [
             ["and", [
                 ["address", producer.walletAddress],
@@ -66,13 +67,10 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 ["has", {
                     what: "output", 
                     asset: "base", 
-                    amount_at_least: convertDollarToByte(price) - safeFee,
                     address: donor.walletAddress
-                }]
+                }],
+                ["has one", { what: "output" }]
             ]],
-            ["and", [
-
-            ]]
         ]];
 
         const assocSignersByPath = {
