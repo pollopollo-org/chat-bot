@@ -78,6 +78,10 @@ async function handleStaleApplications() {
         }
     } catch (err) {
         throw err;
+    } finally {
+        if (conn) {
+            conn.end();
+        }
     }
 }
 
@@ -105,6 +109,10 @@ async function updateApplication (applicationId) {
     await conn.query("UPDATE Contracts set Bytes = 0 where ApplicationId = ?", applicationId);
     // Update the Application to status 5 meaning WITHDRAWN
     await conn.query("UPDATE Applications set Status = 5, LastModified = NOW() where Id = ?", applicationId);
+
+    if (conn) {
+        conn.end();
+    }
 }
 
 async function updateWithdrawnDonations() {
@@ -129,6 +137,10 @@ async function updateWithdrawnDonations() {
                     } 
             }
     };
+
+    if (conn) {
+        conn.end();
+    }
 }
 
 async function init() {
@@ -137,9 +149,6 @@ async function init() {
 
     await updateWithdrawnDonations();
 
-    if (conn) {
-        conn.end();
-    }
     if (obyte) {
             obyte.close((err) => {
                     if (err) {
