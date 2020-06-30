@@ -20,6 +20,8 @@ import { offerContract } from "./utils/offerContract";
 import { completeContract } from "./utils/storeContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { subscribe, unsubscribe } from "./utils/newsletter";
+import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron";
+
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
@@ -27,6 +29,9 @@ import { subscribe, unsubscribe } from "./utils/newsletter";
 eventBus.on("headless_wallet_ready", () => {
     // Ensure that the bot checks once a day if any contracts have expired.
     // cron.schedule("* 0 * * *", publishTimestamp);
+    cron.schedule("* 0 * * *", handleStaleApplications);
+    cron.schedule("0 * * * *", updateWithdrawnDonations);
+
     state.wallet.setupChatEventHandlers();
 
     const placeholder = wallet;

@@ -32,7 +32,7 @@ const logFile = path.resolve("/home/pollopollo/.pollo_log");
  * "Locked" state for more than an hour since we at that point assume that the
  * donation has failed.
  */
-async function handleStaleApplications() {
+export async function handleStaleApplications() {
 
     try {
         let conn = await pool.getConnection();
@@ -76,9 +76,12 @@ async function handleStaleApplications() {
                 } 
             }
         }
+        if (conn) {
+            conn.end();
+        }
     } catch (err) {
         throw err;
-    }
+    } 
 }
 
 /*
@@ -111,7 +114,7 @@ async function updateApplication (applicationId) {
     }
 }
 
-async function updateWithdrawnDonations() {
+export async function updateWithdrawnDonations() {
 
     let conn = await pool.getConnection();
     // First - Find all pending applications
@@ -138,21 +141,3 @@ async function updateWithdrawnDonations() {
         conn.end();
     }
 }
-
-async function init() {
-    
-    await handleStaleApplications();
-    await updateWithdrawnDonations();
-
-    if (obyte) {
-            obyte.close((err) => {
-                    if (err) {
-                            console.log("Error while closing db handle");
-                    }
-            });
-    }
-    process.exit(0);
-}
-
-// Bootstrap cron-job!
-init();
