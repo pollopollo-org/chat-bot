@@ -1,5 +1,5 @@
 const mariadb = require("mariadb");
-const dbData = require("./../dbData");
+const dbData = require("../../dbData");
 
 const sqlite = require("sqlite3").verbose();
 
