@@ -1,5 +1,5 @@
 const mariadb = require("mariadb");
-const dbData = require("./dbData");
+const dbData = require("./../dbData");
 
 const sqlite = require("sqlite3").verbose();
 
@@ -19,7 +19,7 @@ const pool = mariadb.createPool({
     connectionLimit: 5
 });
 
-const obyte = new sqlite.Database("../.config/chat-bot/byteball.sqlite", sqlite.OPEN_READONLY, (err) => {
+const obyte = new sqlite.Database("../../.config/chat-bot/byteball.sqlite", sqlite.OPEN_READONLY, (err) => {
     if (err) {
         console.log()
     }
