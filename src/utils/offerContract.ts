@@ -75,7 +75,7 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 ["has", {
                     what: "output", 
                     asset: "base", 
-                    address: donor.walletAddress
+                    address: producer.walletAddress
                 }],
                 ["has one", { what: "output" }]
             ]],
