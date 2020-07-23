@@ -31,7 +31,7 @@ eventBus.on("headless_wallet_ready", () => {
     // cron.schedule("* 0 * * *", publishTimestamp);
     cron.schedule("* * * * *", handleStaleApplications);
     cron.schedule("* * * * *", updateWithdrawnDonations);
-    cron.schedule("* * * * *", sendNewsletter);
+    cron.schedule("* * * * 0", sendNewsletter);
 
     state.wallet.setupChatEventHandlers();
 
