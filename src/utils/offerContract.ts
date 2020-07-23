@@ -96,6 +96,11 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                 address: botWallet,
                 member_signing_path: "r",
                 device_address: botDeviceAddress
+            },
+            "r.3.0": {
+                address: botWallet,
+                member_signing_path: "r",
+                device_address: botDeviceAddress
             }
         };
 
