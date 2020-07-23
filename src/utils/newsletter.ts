@@ -87,34 +87,11 @@ export async function sendNewsletter() {
     `To make a donation, head over to https://pollopollo.org/applications.html\n\n` +
     `To unsubscribe from the Weekly Digest, simply click [unsubscribe](command:unsubscribe).\n` +
     `For a list of available commands, type [help](command:help)`;
-
-    // Find recipients for the NewsLetter and send one to each of them
-    logEvent(LoggableEvents.UNKNOWN, { error: "Finding recipients for the newsletter." });
     
-    rows = await conn.query("SELECT '0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3' as DeviceAddress");
-    for (let i = 0; i < rows.length ; i++) {
+    rows = await conn.query("SELECT * from Newsletter");
+    for (let i = 0; i < rows.length; i++) {
         device.sendMessageToDevice(rows[i].DeviceAddress, "text", NewsletterText);
     }
-    // await conn.query("SELECT DISTCINT(DeviceAddress) FROM Newsletter", function (err, result) {
-/*            if (err) throw err;
-            for (let i = 0; i < result.length; i++) {
-                    // Send the newsletter to the recipient
-                    device.sendMessageToDevice(
-                            result[i].DeviceAddress,
-                            "text",
-                            NewsletterText
-                    );
-
-                    // Send the unsubscribe text
-                    device.sendMessageToDevice(
-                            result[i].DeviceAddress,
-                            "text",
-                            UnSubscribeMessage
-                    );
-            }
-
-    });
-*/
 
     logEvent(LoggableEvents.UNKNOWN, { error: "Weekly newsletters successfully sent." });
 
