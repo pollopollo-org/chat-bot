@@ -39,6 +39,8 @@ export async function unsubscribe(deviceAddress: string) {
  */
 export async function sendNewsletter() {
 
+    logEvent(LoggableEvents.UNKNOWN, { error: "Sending newsletter to recipients." });
+
     let conn = await pool.getConnection();
     let PastWeekDonations = 0;
     let PastWeekSum = 0;
@@ -46,16 +48,20 @@ export async function sendNewsletter() {
     let OpenApplications = 0;
     let TotalCompletedDonations = 0;
     let TotalSum = 0;
+    let NewsletterText = "Default text";
 
-    logEvent(LoggableEvents.UNKNOWN, { error: "Sending newsletter to recipients." });
     logEvent(LoggableEvents.UNKNOWN, { error: "Collecting data for the content." });
 
     // Get the number of completed donations the past week
-    await conn.query("SELECT count(1) AS CompletedDonations FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()", function (err, result) {
-            if (err) throw err;
+    const rows = await conn.query("SELECT count(1) AS CompletedDonations FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()");
+    PastWeekDonations = rows[0].CompletedDonations;
+    //await conn.query("SELECT count(1) AS CompletedDonations FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW();", function (err, result) {
+/*            if (err) {
+                logEvent(LoggableEvents.UNKNOWN, { error: "Connection failed: " + err });
+                    throw err;
+            }
             PastWeekDonations = result[0].CompletedDonations;
           });
-    
     // Get the sum of the past week's completed donations
     await conn.query("SELECT SUM(Price) AS SumPrice FROM Contracts WHERE CreationTime BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()", function (err, result) {
             if (err) throw err;
@@ -85,21 +91,22 @@ export async function sendNewsletter() {
             if (err) throw err;
             TotalSum = result[0].TotalSum;
     });
-
+*/
     logEvent(LoggableEvents.UNKNOWN, { error: "Generating the newsletter content." });
 
     // Generate text for the newsletter
-    let NewsletterText = `Weekly Digest from the PolloPollo Platform.\n` +
+    NewsletterText = "Weekly Digest from the PolloPollo Platform.\n";
+/*    
     `The past week, ` + PastWeekDonations + ` worth ` + PastWeekSum + ` USD have been completed and helped ` + UniqueRecipients + ` unique recipients.\n` +
     `This brings PolloPollo to a grand total of ` + TotalCompletedDonations + ` completed donations worth ` + TotalSum + ` USD - all thanks to you and other donors.\n\n` +
     `There are currently ` + OpenApplications + ` open applications waiting for donors.\n` +
     `To make a donation, head over to https://pollopollo.org`;
-
-    logEvent(LoggableEvents.UNKNOWN, { error: "DONE Generatingcontent. Generating unsubscribe-link"});
+*/
+    logEvent(LoggableEvents.UNKNOWN, { error: "DONE Generating content. Generating unsubscribe-link"});
 
     // Generate text to allow recipients to easily unsubscribe from the newsletter
-    let UnSubscribeMessage = `To unsubscribe from the Weekly Digest, simply click [unsubscribe](command:unsubscribe) here.\n` +
-    `For a list of available commands, type [help](command:help)`;
+    /*let UnSubscribeMessage = `To unsubscribe from the Weekly Digest, simply click [unsubscribe](command:unsubscribe) here.\n` +
+    `For a list of available commands, type [help](command:help)`; */
 
     // Find recipients for the NewsLetter and send one to each of them
     logEvent(LoggableEvents.UNKNOWN, { error: "Finding recipients for the newsletter." });
@@ -107,7 +114,7 @@ export async function sendNewsletter() {
     await conn.query("SELECT '0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3' as DeviceAddress", function (err, result) {
     // await conn.query("SELECT DISTCINT(DeviceAddress) FROM Newsletter", function (err, result) {
             if (err) throw err;
-            for (var i = 0; i < result.length; i++) {
+            for (let i = 0; i < result.length; i++) {
                     // Send the newsletter to the recipient
                     device.sendMessageToDevice(
                             result[i].DeviceAddress,
@@ -116,12 +123,12 @@ export async function sendNewsletter() {
                     );
 
                     // Send the unsubscribe text
-                    device.sendMessageToDevice(
+/*                    device.sendMessageToDevice(
                             result[i].DeviceAddress,
                             "text",
                             UnSubscribeMessage
                     );
-
+*/
                     logEvent(LoggableEvents.UNKNOWN, { error: "Newsletter sent to device: " + result[i].DeviceAddress + "."});
             }
 
