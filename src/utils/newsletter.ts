@@ -101,7 +101,9 @@ export async function sendNewsletter() {
 
     // Find recipients for the NewsLetter and send one to each of them
     logEvent(LoggableEvents.UNKNOWN, { error: "Finding recipients for the newsletter." });
-    await conn.query("SELECT DISTCINT(DeviceAddress) FROM Newsletter", function (err, result) {
+    
+    await conn.query("SELECT '0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3' as DeviceAddress", function (err, result) {
+    // await conn.query("SELECT DISTCINT(DeviceAddress) FROM Newsletter", function (err, result) {
             if (err) throw err;
             for (var i = 0; i < result.length; i++) {
                     // Send the newsletter to the recipient
