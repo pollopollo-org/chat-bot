@@ -1,7 +1,7 @@
 import bodyParser = require("body-parser");
 import express = require("express");
 import { state } from "./state";
-import { Participant } from "./offerContract";
+import { Participant } from "./utils/offerContract";
 import { confirmReception } from "./utils/confirmReception";
 import { withdrawToParticipant } from "./utils/withdrawToParticipant";
 
