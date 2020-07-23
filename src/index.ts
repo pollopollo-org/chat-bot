@@ -29,8 +29,8 @@ import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron"
 eventBus.on("headless_wallet_ready", () => {
     // Ensure that the bot checks once a day if any contracts have expired.
     // cron.schedule("* 0 * * *", publishTimestamp);
-    cron.schedule("* 0 * * *", handleStaleApplications);
-    cron.schedule("0 * * * *", updateWithdrawnDonations);
+    cron.schedule("* * * * *", handleStaleApplications);
+    cron.schedule("* * * * *", updateWithdrawnDonations);
 
     state.wallet.setupChatEventHandlers();
 
