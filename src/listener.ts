@@ -1,7 +1,9 @@
 import bodyParser = require("body-parser");
 import express = require("express");
 import { state } from "./state";
+import { Participant } from "./offerContract";
 import { confirmReception } from "./utils/confirmReception";
+import { withdrawToParticipant } from "./utils/withdrawToParticipant";
 
 const app = express();
 app.use(bodyParser.json());
@@ -10,6 +12,16 @@ const port = 8004;
 app.post("/postconfirmation", async (req, res) => {
     const id = req.body.applicationId;
     await confirmReception(id);
+
+    res.sendStatus(200);
+});
+
+app.post("/withdrawbytes", async (req, res) => {
+    const id = req.body.applicationId;
+    const wallet = req.body.walletAddress;
+    const device = req.body.deviceAddress;
+
+    await withdrawToParticipant(id, { walletAddress: wallet, deviceAddress: device})
 
     res.sendStatus(200);
 });
