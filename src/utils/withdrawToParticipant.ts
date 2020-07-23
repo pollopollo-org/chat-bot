@@ -30,6 +30,7 @@ export async function withdrawToParticipant(applicationId: string, recipient: Pa
     if (!contract) {
         logEvent(LoggableEvents.UNKNOWN, { error: "Application with ID " + applicationId + " not found!"});
     } else {
+        logEvent(LoggableEvents.UNKNOWN, { error: "Received request to withdraw Bytes from Application with ID " + applicationId});
         await state.wallet.sendAllBytesFromAddress(contract.SharedAddress, recipient.walletAddress, recipient.deviceAddress, async (err, unit) => {
             if (err) {
                 logEvent(LoggableEvents.UNKNOWN, { error: "Error trying to send all Bytes from sharedAddress " + contract.SharedAddress + " to user with wallet address: " + recipient.walletAddress + ": " + err});
