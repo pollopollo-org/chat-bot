@@ -19,7 +19,7 @@ import { logEvent, LoggableEvents } from "./utils/logEvent";
 import { offerContract } from "./utils/offerContract";
 import { completeContract } from "./utils/storeContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
-import { subscribe, unsubscribe } from "./utils/newsletter";
+import { subscribe, unsubscribe, sendNewsletter } from "./utils/newsletter";
 import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron";
 
 
@@ -31,6 +31,7 @@ eventBus.on("headless_wallet_ready", () => {
     // cron.schedule("* 0 * * *", publishTimestamp);
     cron.schedule("* * * * *", handleStaleApplications);
     cron.schedule("* * * * *", updateWithdrawnDonations);
+    cron.schedule("* * * * *", sendNewsletter);
 
     state.wallet.setupChatEventHandlers();
 

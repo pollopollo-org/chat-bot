@@ -95,6 +95,8 @@ export async function sendNewsletter() {
     `There are currently ` + OpenApplications + ` open applications waiting for donors.\n` +
     `To make a donation, head over to https://pollopollo.org`;
 
+    logEvent(LoggableEvents.UNKNOWN, { error: "DONE Generatingcontent. Generating unsubscribe-link"});
+
     // Generate text to allow recipients to easily unsubscribe from the newsletter
     let UnSubscribeMessage = `To unsubscribe from the Weekly Digest, simply click [unsubscribe](command:unsubscribe) here.\n` +
     `For a list of available commands, type [help](command:help)`;
