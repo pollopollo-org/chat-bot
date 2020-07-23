@@ -49,71 +49,54 @@ export async function sendNewsletter() {
     let TotalCompletedDonations = 0;
     let TotalSum = 0;
     let NewsletterText = "Default text";
+    let rows;
 
     logEvent(LoggableEvents.UNKNOWN, { error: "Collecting data for the content." });
 
     // Get the number of completed donations the past week
-    const rows = await conn.query("SELECT count(1) AS CompletedDonations FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()");
+    rows = await conn.query("select count(*) as CompletedDonations from Applications where DateOfDonation between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW() and Status=3");
     PastWeekDonations = rows[0].CompletedDonations;
-    //await conn.query("SELECT count(1) AS CompletedDonations FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW();", function (err, result) {
-/*            if (err) {
-                logEvent(LoggableEvents.UNKNOWN, { error: "Connection failed: " + err });
-                    throw err;
-            }
-            PastWeekDonations = result[0].CompletedDonations;
-          });
+
     // Get the sum of the past week's completed donations
-    await conn.query("SELECT SUM(Price) AS SumPrice FROM Contracts WHERE CreationTime BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()", function (err, result) {
-            if (err) throw err;
-            PastWeekSum = result[0].SumPrice;
-    });
+    rows = await conn.query("select COALESCE(sum(c.Price), 0) as SumPrice from Contracts c left join Applications a on c.ApplicationId = a.Id where a.DateOfDonation between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW() and a.Status = 3");    
+    PastWeekSum = rows[0].SumPrice;
 
     // Get the number of unique recipients the past week
-    await conn.query("SELECT COUNT(DISTINCT(UserId)) AS UniqueRecipients FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()", function (err, result) {
-            if (err) throw err;
-            UniqueRecipients = result[0].UniqueRecipients;
-    });
+    rows = await conn.query("SELECT COUNT(DISTINCT(UserId)) AS UniqueRecipients FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()");
+    UniqueRecipients = rows[0].UniqueRecipients;
 
     // Get the number of currently open applications
-    await conn.query("SELECT COUNT(1) AS OpenApplications FROM Applications WHERE STATUS=0", function (err, result) {
-            if (err) throw err;
-            OpenApplications = result[0].OpenApplications;
-    });
+    rows = await conn.query("SELECT COUNT(1) AS OpenApplications FROM Applications WHERE STATUS=0");
+    OpenApplications = rows[0].OpenApplications;
 
     // Get the total number of donations ever made on PolloPollo
-    await conn.query("SELECT COUNT(1) AS TotalDonations FROM Applications WHERE Status=3", function (err, result) {
-            if (err) throw err;
-            TotalCompletedDonations = result[0].TotalCompletedDonations;
-    });
+    rows = await conn.query("SELECT COUNT(1) AS TotalCompletedDonations FROM Applications WHERE Status=3");
+    TotalCompletedDonations = rows[0].TotalCompletedDonations;
 
     // Get the total sum of donations ever made on PolloPollo
-    await conn.query("SELECT SUM(Price) AS TotalSum FROM Contracts c LEFT JOIN Applications a on c.ApplicationId = a.Id WHERE a.Status=3", function (err, result) {
-            if (err) throw err;
-            TotalSum = result[0].TotalSum;
-    });
-*/
+    rows = await conn.query("SELECT SUM(Price) AS TotalSum FROM Contracts c LEFT JOIN Applications a on c.ApplicationId = a.Id WHERE a.Status=3");
+    TotalSum = rows[0].TotalSum;
+
     logEvent(LoggableEvents.UNKNOWN, { error: "Generating the newsletter content." });
 
     // Generate text for the newsletter
-    NewsletterText = "Weekly Digest from the PolloPollo Platform.\n";
-/*    
-    `The past week, ` + PastWeekDonations + ` worth ` + PastWeekSum + ` USD have been completed and helped ` + UniqueRecipients + ` unique recipients.\n` +
-    `This brings PolloPollo to a grand total of ` + TotalCompletedDonations + ` completed donations worth ` + TotalSum + ` USD - all thanks to you and other donors.\n\n` +
-    `There are currently ` + OpenApplications + ` open applications waiting for donors.\n` +
-    `To make a donation, head over to https://pollopollo.org`;
-*/
-    logEvent(LoggableEvents.UNKNOWN, { error: "DONE Generating content. Generating unsubscribe-link"});
-
-    // Generate text to allow recipients to easily unsubscribe from the newsletter
-    /*let UnSubscribeMessage = `To unsubscribe from the Weekly Digest, simply click [unsubscribe](command:unsubscribe) here.\n` +
-    `For a list of available commands, type [help](command:help)`; */
+    NewsletterText = `Sunday Digest from the PolloPollo Platform.\n` +
+    `The past week, ` + PastWeekDonations + ` donations worth $` + PastWeekSum + ` have been completed and helped ` + UniqueRecipients + ` unique recipients.\n` +
+    `This brings PolloPollo to a grand total of ` + TotalCompletedDonations + ` completed donations worth $` + TotalSum + ` - thanks to you and other donors.\n\n` +
+    `There are currently ` + OpenApplications + ` open applications waiting for donors.` +
+    `To make a donation, head over to https://pollopollo.org/applications.html\n\n` +
+    `To unsubscribe from the Weekly Digest, simply click [unsubscribe](command:unsubscribe).\n` +
+    `For a list of available commands, type [help](command:help)`;
 
     // Find recipients for the NewsLetter and send one to each of them
     logEvent(LoggableEvents.UNKNOWN, { error: "Finding recipients for the newsletter." });
     
-    await conn.query("SELECT '0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3' as DeviceAddress", function (err, result) {
+    rows = await conn.query("SELECT '0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3' as DeviceAddress");
+    for (let i = 0; i < rows.length ; i++) {
+        device.sendMessageToDevice(rows[i].DeviceAddress, "text", NewsletterText);
+    }
     // await conn.query("SELECT DISTCINT(DeviceAddress) FROM Newsletter", function (err, result) {
-            if (err) throw err;
+/*            if (err) throw err;
             for (let i = 0; i < result.length; i++) {
                     // Send the newsletter to the recipient
                     device.sendMessageToDevice(
@@ -123,16 +106,15 @@ export async function sendNewsletter() {
                     );
 
                     // Send the unsubscribe text
-/*                    device.sendMessageToDevice(
+                    device.sendMessageToDevice(
                             result[i].DeviceAddress,
                             "text",
                             UnSubscribeMessage
                     );
-*/
-                    logEvent(LoggableEvents.UNKNOWN, { error: "Newsletter sent to device: " + result[i].DeviceAddress + "."});
             }
 
     });
+*/
 
     logEvent(LoggableEvents.UNKNOWN, { error: "Weekly newsletters successfully sent." });
 
