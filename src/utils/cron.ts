@@ -100,42 +100,51 @@ async function getbalance(sharedWallet) {
 /*
  * Update Contract and Application to reflect the change
  */
-async function updateApplication (applicationId) {
-
-    let conn = await pool.getConnection();
-
-    // Update the contract to reflect that Bytes has been withdrawn
-    await conn.query("UPDATE Contracts set Bytes = 0 where ApplicationId = ?", applicationId);
-    // Update the Application to status 5 meaning WITHDRAWN
-    await conn.query("UPDATE Applications set Status = 5, LastModified = NOW() where Id = ?", applicationId);
-
-    if (conn) {
-        conn.end();
-    }
-}
-
 export async function updateWithdrawnDonations() {
 
     let conn = await pool.getConnection();
     // First - Find all pending applications
-    const rows = await conn.query("SELECT a.Id, c.SharedAddress, ua.email as recipientemail, up.email as produceremail FROM Applications a left join Contracts c on a.Id = c.ApplicationId left join Users ua on a.UserId = ua.Id left join Products p on a.ProductId = p.Id left join Users up on p.UserId = up.Id WHERE a.Status=2;");
+    let rows = await conn.query("SELECT a.Id, c.SharedAddress, ua.email as recipientemail, up.email as produceremail FROM Applications a left join Contracts c on a.Id = c.ApplicationId left join Users ua on a.UserId = ua.Id left join Products p on a.ProductId = p.Id left join Users up on p.UserId = up.Id WHERE a.Status=2;");
 
     for (let i = 0; i < rows.length; i++) {
-            let walletbalance = await getbalance([rows[i].SharedAddress]); // Get wallet balance
-            if (!walletbalance) { // If the balance is zero on a pending application, the donor must have withdrawn the donated funds
-                    
-                    await updateApplication([rows[i].Id]);
+        let walletbalance = await getbalance([rows[i].SharedAddress]); // Get wallet balance
+        if (!walletbalance) { // If the balance is zero on a pending application, the donor must have withdrawn the donated funds
 
-                    let message = "Donor withdrew from ApplicationId " + rows[i].Id + ". Updating Application.Status to 5 and Contract.Bytes to 0";
-                    if (await exists(logFile)) {
-                        const release = await lockfile.lock(logFile);
-                        await appendFile(logFile, `\n\n${message}`);
-                        await release();
-                    } else {
-                        await createFile(logFile, message);
-                    } 
-            }
+            // Update the contract to reflect that Bytes has been withdrawn
+            await conn.query("UPDATE Contracts set Bytes = 0 where ApplicationId = ?", [rows[i].Id]);
+            // Update the Application to status 5 meaning WITHDRAWN
+            await conn.query("UPDATE Applications set Status = 5, LastModified = NOW() where Id = ?", [rows[i].Id]);
+                
+            // Log that we updated Applications and Contracts
+            let message = "Donor withdrew from ApplicationId " + rows[i].Id + ". Updating Application.Status to 5 and Contract.Bytes to 0";
+            if (await exists(logFile)) {
+                const release = await lockfile.lock(logFile);
+                await appendFile(logFile, `\n\n${message}`);
+                await release();
+            } else {
+                await createFile(logFile, message);
+            } 
+        }
     };
+
+    // Next - we clean up all Contracts where Producer withdrew funds by setting Bytes = 0
+    rows = await conn.query("SELECT a.Id, c.SharedAddress, ua.email as recipientemail, up.email as produceremail FROM Applications a left join Contracts c on a.Id = c.ApplicationId left join Users ua on a.UserId = ua.Id left join Products p on a.ProductId = p.Id left join Users up on p.UserId = up.Id WHERE a.Status=3;");
+
+    for (let i = 0; i < rows.length; i++) {
+        let walletbalance = await getbalance([rows[i].SharedAddress]); // Get wallet balance
+        if (!walletbalance) {
+            await conn.query("UPDATE Contracts set Bytes = 0 where ApplicationId = ?", [rows[i].Id]);
+            // Log that we updated Contracts
+            let message = "Producer withdrew from ApplicationId " + rows[i].Id + ". Updating Contracts.Bytes to 0";
+            if (await exists(logFile)) {
+                const release = await lockfile.lock(logFile);
+                await appendFile(logFile, `\n\n${message}`);
+                await release();
+            } else {
+                await createFile(logFile, message);
+            } 
+        }
+    }
 
     if (conn) {
         conn.end();
