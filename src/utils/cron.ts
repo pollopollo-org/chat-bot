@@ -128,7 +128,7 @@ export async function updateWithdrawnDonations() {
     };
 
     // Next - we clean up all Contracts where Producer withdrew funds by setting Bytes = 0
-    rows = await conn.query("SELECT a.Id, c.SharedAddress, ua.email as recipientemail, up.email as produceremail FROM Applications a left join Contracts c on a.Id = c.ApplicationId left join Users ua on a.UserId = ua.Id left join Products p on a.ProductId = p.Id left join Users up on p.UserId = up.Id WHERE a.Status=3;");
+    rows = await conn.query("SELECT a.Id, c.SharedAddress, ua.email as recipientemail, up.email as produceremail FROM Applications a left join Contracts c on a.Id = c.ApplicationId left join Users ua on a.UserId = ua.Id left join Products p on a.ProductId = p.Id left join Users up on p.UserId = up.Id WHERE a.Status=3 and c.Bytes > 0;");
 
     for (let i = 0; i < rows.length; i++) {
         let walletbalance = await getbalance([rows[i].SharedAddress]); // Get wallet balance
