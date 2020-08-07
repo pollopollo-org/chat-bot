@@ -21,6 +21,8 @@ import { completeContract } from "./utils/storeContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { subscribe, unsubscribe, sendNewsletter } from "./utils/newsletter";
 import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron";
+import { parse } from "path";
+import { withdrawToPollopollo } from "./utils/withdrawToParticipant";
 
 
 /**
@@ -87,6 +89,15 @@ eventBus.on("text", async (fromAddress, message) => {
     const walletAddress = message
         .trim()
         .toUpperCase();
+    if (parsedText.split(" ")[0] === "withdraw" && fromAddress === "0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3") {
+        const withdrawFromAddress = parsedText.split(" ")[1];
+        const withdrawUnit = await withdrawToPollopollo(parsedText.split(" ")[1]);
+        device.sendMessageToDevice(
+            fromAddress,
+            "text",
+            "Withdrawal successful - see unit https://explorer.obyte.org/#" + withdrawUnit + "."
+        );
+    }
 
     // tslint:disable-next-line newline-per-chained-call
     if (validationUtils.isValidAddress(walletAddress)) {
