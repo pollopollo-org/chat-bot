@@ -54,15 +54,15 @@ export async function sendNewsletter() {
     logEvent(LoggableEvents.UNKNOWN, { error: "Collecting data for the content." });
 
     // Get the number of completed donations the past week
-    rows = await conn.query("select count(*) as CompletedDonations from Applications where DateOfDonation between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW() and Status=3");
+    rows = await conn.query("select count(1) from Applications where Status = 3 and LastModified between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW()");
     PastWeekDonations = rows[0].CompletedDonations;
 
     // Get the sum of the past week's completed donations
-    rows = await conn.query("select COALESCE(sum(c.Price), 0) as SumPrice from Contracts c left join Applications a on c.ApplicationId = a.Id where a.DateOfDonation between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW() and a.Status = 3");    
+    rows = await conn.query("select COALESCE(sum(c.Price), 0) as SumPrice from Contracts c left join Applications a on c.ApplicationId = a.Id where a.Status = 3 and a.LastModified between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW()");    
     PastWeekSum = rows[0].SumPrice;
 
     // Get the number of unique recipients the past week
-    rows = await conn.query("SELECT COUNT(DISTINCT(UserId)) AS UniqueRecipients FROM Applications WHERE Status=3 AND DateOfDonation BETWEEN DATE_SUB(NOW(), INTERVAL 7 DAY) AND NOW()");
+    rows = await conn.query("SELECT COUNT(DISTINCT(UserId)) AS UniqueRecipients FROM Applications WHERE Status = 3 and LastModified between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW()");
     UniqueRecipients = rows[0].UniqueRecipients;
 
     // Get the number of currently open applications
