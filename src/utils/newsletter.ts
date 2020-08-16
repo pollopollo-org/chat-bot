@@ -54,7 +54,7 @@ export async function sendNewsletter() {
     logEvent(LoggableEvents.UNKNOWN, { error: "Collecting data for the content." });
 
     // Get the number of completed donations the past week
-    rows = await conn.query("select count(1) from Applications where Status = 3 and LastModified between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW()");
+    rows = await conn.query("select count(1) as CompletedDonations from Applications where Status = 3 and LastModified between DATE_SUB(NOW(), INTERVAL 7 DAY) and NOW()");
     PastWeekDonations = rows[0].CompletedDonations;
 
     // Get the sum of the past week's completed donations
