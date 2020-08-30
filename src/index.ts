@@ -23,6 +23,7 @@ import { subscribe, unsubscribe, sendNewsletter } from "./utils/newsletter";
 import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron";
 import { parse } from "path";
 import { withdrawToPollopollo } from "./utils/withdrawToParticipant";
+import { aaCreateApplication, aaCancelApplication, aaDonate, aaConfirm } from "./utils/aainteraction";
 
 
 /**
