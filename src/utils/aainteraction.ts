@@ -1,6 +1,6 @@
 import { state } from "../state";
 
-const aa_address = "DHBRRUMBTA2XH7L2VKEI4QHHNYOTTI5E";
+const aaAddress = "UA2OPEG2BLTAAPZGWQ4IHEZLHOD22BBJ";
 /**
  * Create a new application
  * Producer: Wallet address of the producer that will provide the product
@@ -89,7 +89,7 @@ function callAa(aaVars) {
                     payload: aaVars
                 }
             ],
-            to_address: aa_address,
+            to_address: aaAddress,
             amount: 10000
         };
         state.wallet.sendMultiPayment(params);

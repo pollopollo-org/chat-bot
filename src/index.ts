@@ -24,7 +24,7 @@ import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron"
 import { parse } from "path";
 import { withdrawToPollopollo } from "./utils/withdrawToParticipant";
 import { aaCreateApplication, aaCancelApplication, aaDonate, aaConfirm } from "./utils/aainteraction";
-
+import { AA, } from "aagent.js";
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
@@ -39,6 +39,60 @@ eventBus.on("headless_wallet_ready", () => {
     state.wallet.setupChatEventHandlers();
 
     const placeholder = wallet;
+
+    const aa = new AA("UA2OPEG2BLTAAPZGWQ4IHEZLHOD22BBJ");
+    
+    aa.events.on('new_request', (request) => {
+        console.error('new request', request);
+    });
+
+    aa.events.on('new_response', (err, response, vars) => {
+        const aaAction = response.response.responseVars;
+
+        switch(aaAction.action) {
+            case "deposit":
+                // Check if donor is known already
+                // If not - add new donor using aaAction.donor and response.address
+                device.sendMessageToDevice(
+                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                    "text",
+                    "The donor is: " + aaAction.donor +
+                    "\nThe asset is: " + aaAction.asset +
+                    "\n and I believe the address was: " + aaAction.address
+                );
+                break;
+            case "create":
+                // Update backend with the AAID (triggering unit ID)
+                break;
+            case "withdraw":
+                // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
+                break;
+            case "return":
+                // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
+                break;
+            case "donate":
+                // Update backend, that application status should change to 2 = PENDING
+                break;
+            case "confirm":
+                // Update backend, that application status should change to 3 = COMPLETED (triggering unit ID) and make sure Bytes is set to 0
+                break;
+        }
+    });
+
+    aa.events.on('new_aa_definition', (definition) => {
+        console.error('new aa definition', definition);
+    });
+
+    aa.events.on('new_aa_definition_saved', (definition) => {
+        console.error('new aa definition saved', definition);
+    });
+
+    aa.addResponseEventHandler((err, params, vars) => {        
+        return true;
+      }, (err, params, vars) => {
+        console.error(err, params, vars);
+      });
+
 });
 
 /**
@@ -164,13 +218,7 @@ eventBus.on("text", async (fromAddress, message) => {
         case "post":
             await publishTimestamp();
             break;
-        /*
-        ** Function allowing a donor or a Producer to request to have smart contract definitions resent to them.
-        ** This, of course, will only work if the chat bot can identify the device address that was used to create them with.
-        ** It means that even if a backup from a point in time prior to the creation of the smart contract is restored,
-        ** the user can successfully restore the otherwise lost contracts. 
-        ** IMPORTANT: It right now only works with Bytes - if other currencies are introduced, this must be reworked!
-        */
+
        case "resend":
         walletDefinedByAddresses.sendToPeerAllSharedAddressesHavingUnspentOutputs(fromAddress, "base", {
             ifFundedSharedAddress: function(numberOfContracts) {
@@ -227,7 +275,22 @@ eventBus.on("text", async (fromAddress, message) => {
                 `If you change your mind, you can always [subscribe](command:subscribe) again.`
             );
             break;
-    
+
+        case "a":
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                "Checking the balance of a donor on the AA"
+            );
+
+            const donateAmount = await AA.getAAVars('DHBRRUMBTA2XH7L2VKEI4QHHNYOTTI5E', {var_prefix_from: 'donation_punqtured', var_prefix_to: 'donation_punqtured'});
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                "I think I got this value: " + JSON.stringify(donateAmount)
+            );
+            break;
+
         default:
             device.sendMessageToDevice(
                 fromAddress,
@@ -243,7 +306,7 @@ eventBus.on("text", async (fromAddress, message) => {
  */
 eventBus.on("new_my_transactions", async (arrUnits) => {
     arrUnits.forEach((unit) => {
-        // Did we confirm receival of a product?
+        // Did we confirm receipt of a product?
         db.query("SELECT * FROM data_feeds WHERE unit = ?", [unit], (rows) => {
             rows.forEach(async (row) => {
                 const contract = await getContractByConfirmKey(row.feed_name);
