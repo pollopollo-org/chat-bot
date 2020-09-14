@@ -23,8 +23,10 @@ import { subscribe, unsubscribe, sendNewsletter } from "./utils/newsletter";
 import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron";
 import { parse } from "path";
 import { withdrawToPollopollo } from "./utils/withdrawToParticipant";
-import { aaCreateApplication, aaCancelApplication, aaDonate, aaConfirm } from "./utils/aainteraction";
+import { aaCreateApplication, aaCancelApplication, aaDonate, aaConfirm, getDonorBalance, getApplicationBalance, getApplicationRequestedAmount } from "./utils/aainteraction";
 import { AA, } from "aagent.js";
+
+const aa = new AA("UA2OPEG2BLTAAPZGWQ4IHEZLHOD22BBJ");
 
 /**
  * Setup cron-jobs etc. as soon as the bot is fully booted
@@ -39,14 +41,13 @@ eventBus.on("headless_wallet_ready", () => {
     state.wallet.setupChatEventHandlers();
 
     const placeholder = wallet;
-
-    const aa = new AA("UA2OPEG2BLTAAPZGWQ4IHEZLHOD22BBJ");
     
     aa.events.on('new_request', (request) => {
         console.error('new request', request);
     });
 
     aa.events.on('new_response', (err, response, vars) => {
+        // TODO - Handle bounces!!!
         const aaAction = response.response.responseVars;
 
         switch(aaAction.action) {
@@ -63,6 +64,11 @@ eventBus.on("headless_wallet_ready", () => {
                 break;
             case "create":
                 // Update backend with the AAID (triggering unit ID)
+                device.sendMessageToDevice(
+                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                    "text",
+                    "Application: " + JSON.stringify(response)
+                );
                 break;
             case "withdraw":
                 // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
@@ -71,6 +77,12 @@ eventBus.on("headless_wallet_ready", () => {
                 // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
                 break;
             case "donate":
+                device.sendMessageToDevice(
+                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                    "text",
+                    "Donation was made from donor: " + aaAction.donor +
+                    "\nTo application: " + aaAction.id
+                );
                 // Update backend, that application status should change to 2 = PENDING
                 break;
             case "confirm":
@@ -80,11 +92,11 @@ eventBus.on("headless_wallet_ready", () => {
     });
 
     aa.events.on('new_aa_definition', (definition) => {
-        console.error('new aa definition', definition);
+        //console.error('new aa definition', definition);
     });
 
     aa.events.on('new_aa_definition_saved', (definition) => {
-        console.error('new aa definition saved', definition);
+        // console.error('new aa definition saved', definition);
     });
 
     aa.addResponseEventHandler((err, params, vars) => {        
@@ -277,18 +289,54 @@ eventBus.on("text", async (fromAddress, message) => {
             break;
 
         case "a":
+
+            await aaDonate("8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc=", "Punqtured", (err, unit) => {
+                if (err) {
+                    console.error("In chat-handler, I got an error: " + err);
+                } else {
+                    console.error("In chat-handler, I got this unit after donation: " + unit);
+                    device.sendMessageToDevice(
+                        fromAddress,
+                        "text",
+                        "You donation can be seen in this unit: " + unit
+                    );
+                }
+            });
+
+            const donatedAmount = await getApplicationBalance("8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc=");
             device.sendMessageToDevice(
                 fromAddress,
                 "text",
-                "Checking the balance of a donor on the AA"
+                "The balance of Application with ID: 8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc= seems to be: " + donatedAmount
             );
 
-            const donateAmount = await AA.getAAVars('DHBRRUMBTA2XH7L2VKEI4QHHNYOTTI5E', {var_prefix_from: 'donation_punqtured', var_prefix_to: 'donation_punqtured'});
+            const requestedAmount = await getApplicationRequestedAmount("8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc=");
+            device.sendMessageToDevice(
+                fromAddress,
+                "text",
+                "The amount requested for Application with ID: 8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc= seems to be: " + requestedAmount
+            );
+
+/*          
+            await aaCreateApplication("UWR2Z4DP5RZ2TAGLIRAUSWOS2KB6EAPV",12000,false, (err, unit) => {
+                if (err) {
+                    console.error("In chat-handler, I got an error: " + err);
+                } else {
+                    console.error("In chat-handler, I got this as Output: " + unit);
+                    device.sendMessageToDevice(
+                        fromAddress,
+                        "text",
+                        "I think this is the unit with your application: " + unit
+                    );
+                }
+            });
+            const donateAmount = await getDonorBalance("triggerAddressTest1");
             device.sendMessageToDevice(
                 fromAddress,
                 "text",
                 "I think I got this value: " + JSON.stringify(donateAmount)
             );
+*/
             break;
 
         default:
