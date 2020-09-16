@@ -5,6 +5,7 @@ import eventBus = require("ocore/event_bus.js");
 import validationUtils = require("ocore/validation_utils.js");
 import wallet = require("ocore/wallet");
 import walletDefinedByAddresses = require("ocore/wallet_defined_by_addresses");
+import storage = require("ocore/storage");
 
 import "./listener";
 
@@ -21,7 +22,6 @@ import { completeContract } from "./utils/storeContract";
 import { publishTimestamp } from "./utils/publishTimestamp";
 import { subscribe, unsubscribe, sendNewsletter } from "./utils/newsletter";
 import { handleStaleApplications, updateWithdrawnDonations } from "./utils/cron";
-import { parse } from "path";
 import { withdrawToPollopollo } from "./utils/withdrawToParticipant";
 import { aaCreateApplication, aaCancelApplication, aaDonate, aaConfirm, getDonorBalance, getApplicationBalance, getApplicationRequestedAmount } from "./utils/aainteraction";
 import { AA, } from "aagent.js";
@@ -46,48 +46,84 @@ eventBus.on("headless_wallet_ready", () => {
         console.error('new request', request);
     });
 
-    aa.events.on('new_response', (err, response, vars) => {
-        // TODO - Handle bounces!!!
-        const aaAction = response.response.responseVars;
+    aa.events.on('new_response', (err, response, vars, body) => {
+        // Section to handle AA bounces
+        if (err) {
+            // Retrieve trigger_unit
+            storage.readUnit(body.trigger_unit, function(triggerUnit) {
+                if(!triggerUnit) {
+                    console.error("I couldn't find a unit!");
+                }else{
+                    if (triggerUnit.action) {
+                        switch(triggerUnit.action) {
+                            case "deposit":
+                                console.error("A deposit went wrong!");
+                                break;
+                            case "create":
+                                break;
+                            case "withdraw":
+                                break;
+                            case "return":
+                                break;
+                            case "donate":
+                                console.error("A donation failed!");
+                                console.error("ApplicationId: " + triggerUnit.id);
+                                console.error("Donor: " + triggerUnit.donor);
+                                console.error("Reason for bounce: " + err);
+                                break;
+                            case "confirm":
+                                break;
+                        }
+                    }
+                }
+            });
+            
 
-        switch(aaAction.action) {
-            case "deposit":
-                // Check if donor is known already
-                // If not - add new donor using aaAction.donor and response.address
-                device.sendMessageToDevice(
-                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
-                    "text",
-                    "The donor is: " + aaAction.donor +
-                    "\nThe asset is: " + aaAction.asset +
-                    "\n and I believe the address was: " + aaAction.address
-                );
-                break;
-            case "create":
-                // Update backend with the AAID (triggering unit ID)
-                device.sendMessageToDevice(
-                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
-                    "text",
-                    "Application: " + JSON.stringify(response)
-                );
-                break;
-            case "withdraw":
-                // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
-                break;
-            case "return":
-                // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
-                break;
-            case "donate":
-                device.sendMessageToDevice(
-                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
-                    "text",
-                    "Donation was made from donor: " + aaAction.donor +
-                    "\nTo application: " + aaAction.id
-                );
-                // Update backend, that application status should change to 2 = PENDING
-                break;
-            case "confirm":
-                // Update backend, that application status should change to 3 = COMPLETED (triggering unit ID) and make sure Bytes is set to 0
-                break;
+        } else {
+            /*
+            ** Section to handle good responses
+            */            
+            const aaAction = response.response.responseVars;
+
+            switch(aaAction.action) {
+                case "deposit":
+                    // Check if donor is known already
+                    // If not - add new donor using aaAction.donor and response.address
+                    device.sendMessageToDevice(
+                        "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                        "text",
+                        "The donor is: " + aaAction.donor +
+                        "\nThe asset is: " + aaAction.asset +
+                        "\n and I believe the address was: " + aaAction.address
+                    );
+                    break;
+                case "create":
+                    // Update backend with the AAID (triggering unit ID)
+                    device.sendMessageToDevice(
+                        "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                        "text",
+                        "Application: " + JSON.stringify(response)
+                    );
+                    break;
+                case "withdraw":
+                    // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
+                    break;
+                case "return":
+                    // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
+                    break;
+                case "donate":
+                    device.sendMessageToDevice(
+                        "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                        "text",
+                        "Donation was made from donor: " + aaAction.donor +
+                        "\nTo application: " + aaAction.id
+                    );
+                    // Update backend, that application status should change to 2 = PENDING
+                    break;
+                case "confirm":
+                    // Update backend, that application status should change to 3 = COMPLETED (triggering unit ID) and make sure Bytes is set to 0
+                    break;
+            }
         }
     });
 
@@ -157,7 +193,6 @@ eventBus.on("text", async (fromAddress, message) => {
         .trim()
         .toUpperCase();
     if (parsedText.split(" ")[0] === "withdraw" && fromAddress === "0QZMFST5OJ4YS53Z2LMLHW2PVQUI4ZHS3") {
-        const withdrawFromAddress = parsedText.split(" ")[1];
         const withdrawUnit = await withdrawToPollopollo(parsedText.split(" ")[1]);
         device.sendMessageToDevice(
             fromAddress,
@@ -290,7 +325,7 @@ eventBus.on("text", async (fromAddress, message) => {
 
         case "a":
 
-            await aaDonate("8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc=", "Punqtured", (err, unit) => {
+            await aaDonate("00008kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc=", "Punqtured", (err, unit) => {
                 if (err) {
                     console.error("In chat-handler, I got an error: " + err);
                 } else {
@@ -298,11 +333,11 @@ eventBus.on("text", async (fromAddress, message) => {
                     device.sendMessageToDevice(
                         fromAddress,
                         "text",
-                        "You donation can be seen in this unit: " + unit
+                        "You donation can be seen in this unit: https://testnetexplorer.obyte.org/#" + unit
                     );
                 }
             });
-
+/*
             const donatedAmount = await getApplicationBalance("8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc=");
             device.sendMessageToDevice(
                 fromAddress,
@@ -316,7 +351,7 @@ eventBus.on("text", async (fromAddress, message) => {
                 "text",
                 "The amount requested for Application with ID: 8kLPqle9dit6Yq6DC+rpIvPpDgWvg1JgCE4sYoip2Qc= seems to be: " + requestedAmount
             );
-
+*/
 /*          
             await aaCreateApplication("UWR2Z4DP5RZ2TAGLIRAUSWOS2KB6EAPV",12000,false, (err, unit) => {
                 if (err) {
