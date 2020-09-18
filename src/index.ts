@@ -9,7 +9,7 @@ import storage = require("ocore/storage");
 
 import "./listener";
 
-import { ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
+import { aaCreated, ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { state } from "./state";
@@ -47,7 +47,9 @@ eventBus.on("headless_wallet_ready", () => {
     });
 
     aa.events.on('new_response', (err, response, vars, body) => {
-        // Section to handle AA bounces
+        /*
+        ** Section to handle bounces
+        */     
         if (err) {
             // Retrieve trigger_unit
             storage.readUnit(body.trigger_unit, function(triggerUnit) {
@@ -60,6 +62,8 @@ eventBus.on("headless_wallet_ready", () => {
                                 console.error("A deposit went wrong!");
                                 break;
                             case "create":
+                                // A creation of an application on the AA failed - inform the back-end so it can delete it
+                                aaCreated(body.trigger_unit,false,err);
                                 break;
                             case "withdraw":
                                 break;
@@ -77,8 +81,6 @@ eventBus.on("headless_wallet_ready", () => {
                     }
                 }
             });
-            
-
         } else {
             /*
             ** Section to handle good responses
@@ -99,11 +101,7 @@ eventBus.on("headless_wallet_ready", () => {
                     break;
                 case "create":
                     // Update backend with the AAID (triggering unit ID)
-                    device.sendMessageToDevice(
-                        "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
-                        "text",
-                        "Application: " + JSON.stringify(response)
-                    );
+                    aaCreated(body.trigger_unit,true,"Successfull created application on the AA");
                     break;
                 case "withdraw":
                     // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
