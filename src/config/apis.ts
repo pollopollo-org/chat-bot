@@ -58,6 +58,11 @@ export const apis = {
             path: `${basePath}/applications/contractinfo/{applicationId}`,
             method: "GET",
             errors: {}
+        },
+        aaCreated: {
+            path: `${basePath}/applications/aacreated`,
+            method: "PUT",
+            errors: {}
         }
     }
 };
