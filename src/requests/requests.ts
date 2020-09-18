@@ -45,6 +45,35 @@ export async function updateApplicationStatus(applicationId: string, status: App
 }
 
 /**
+ * Request method that'll update the backend to let it know if an application was successfully created on the AA
+ */
+// tslint:disable-next-line export-name
+export async function aaCreated(applicationId: string, success: boolean, result: string) {
+    try {
+        const endPoint = apis.applications.aaCreated;
+
+        // Send request to backend
+        const response = await fetch(endPoint.path, {
+            method: endPoint.method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                applicationId: applicationId,
+                success,
+                result
+            })
+        });
+
+        if (!response.ok) {
+            //logEvent(LoggableEvents.REGISTERED_USER, { wallet: walletAddress, device: deviceAddress, pairingSecret });
+            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of application creation on AA"})
+        }
+    } catch (err) {
+        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of application creation on AA"})
+    }
+}
+/**
  * Should be called once we're ready to store information about a
  * producer in order to store it properly on the backend.
  */
