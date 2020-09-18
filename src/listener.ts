@@ -4,6 +4,7 @@ import { state } from "./state";
 import { Participant } from "./utils/offerContract";
 import { confirmReception } from "./utils/confirmReception";
 import { withdrawToParticipant } from "./utils/withdrawToParticipant";
+import { aaCancelApplication, aaConfirm, aaCreateApplication, aaDonate } from "./utils/aainteraction";
 
 const app = express();
 app.use(bodyParser.json());
@@ -28,6 +29,61 @@ app.post("/withdrawbytes", async (req, res) => {
 
 app.get("/rates", (req, res) => {
     res.send(state.rates);
+});
+
+app.post("/createapplication", async (req, res) => {
+    const producer = req.body.producer;
+    const amount = req.body.amount;
+    const stablecoin = req.body.stablecoin;
+    await aaCreateApplication(producer,amount,stablecoin, (err, unit) => {
+        if (err) {
+            res.send(err);
+            res.sendStatus(500);
+        } else {
+            res.send(unit);
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post("/aacancelapplication", async (req, res) => {
+    const applicationId = req.body.applicationId;
+    await aaCancelApplication(applicationId, (err, unit) => {
+        if (err) {
+            res.send(err);
+            res.sendStatus(500);
+        } else {
+            res.send(unit);
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post("/donate", async (req, res) => {
+    const applicationId = req.body.applicationId;
+    const donor = req.body.donor;
+    await aaDonate(applicationId, donor, (err, unit) => {
+        if (err) {
+            res.send(err);
+            res.sendStatus(500);
+        } else {
+            res.send(unit);
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post("aaConfirm/", async (req, res) => {
+    const applicationId = req.body.applicationId;
+    await aaConfirm(applicationId, (err, unit) => {
+        if (err) {
+            res.send(err);
+            res.sendStatus(500);
+        } else {
+            res.send(unit);
+            res.sendStatus(200);
+        }
+    });
 });
 
 const server = app.listen(port, "localhost");
