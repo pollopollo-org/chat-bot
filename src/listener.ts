@@ -31,10 +31,10 @@ app.get("/rates", (req, res) => {
     res.send(state.rates);
 });
 
-app.post("/createapplication", async (req, res) => {
-    const producer = req.body.producer;
-    const amount = req.body.amount;
-    const stablecoin = req.body.stablecoin;
+app.post("/aacreateapplication", async (req, res) => {
+    const producer = req.body.producerWalletAddress;
+    const amount = req.body.amountBytes;
+    const stablecoin = req.body.isStableCoin;
     await aaCreateApplication(producer,amount,stablecoin, (err, unit) => {
         if (err) {
             res.send(err);
@@ -73,7 +73,7 @@ app.post("/donate", async (req, res) => {
     });
 });
 
-app.post("aaConfirm/", async (req, res) => {
+app.post("/aaconfirm", async (req, res) => {
     const applicationId = req.body.applicationId;
     await aaConfirm(applicationId, (err, unit) => {
         if (err) {
