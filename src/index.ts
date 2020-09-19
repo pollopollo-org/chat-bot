@@ -63,7 +63,7 @@ eventBus.on("headless_wallet_ready", () => {
                                 break;
                             case "create":
                                 // A creation of an application on the AA failed - inform the back-end so it can delete it
-                                aaCreated(body.trigger_unit,false,err);
+                                aaCreated(body.trigger_unit, false, err.message);
                                 break;
                             case "withdraw":
                                 break;
@@ -101,7 +101,7 @@ eventBus.on("headless_wallet_ready", () => {
                     break;
                 case "create":
                     // Update backend with the AAID (triggering unit ID)
-                    aaCreated(body.trigger_unit,true,"Successfull created application on the AA");
+                    aaCreated(body.trigger_unit, true, "Successfully created application on the AA");
                     break;
                 case "withdraw":
                     // Update backend, that funds was withdrawn from application (triggering unit ID) and make sure Bytes is set to 0
