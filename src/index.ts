@@ -9,7 +9,7 @@ import storage = require("ocore/storage");
 
 import "./listener";
 
-import { aaCreated, ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
+import { aaConfirmed, aaCreated, aaDonorDeposited, ApplicationStatus, getContractData, setProducerInformation, updateApplicationStatus } from "./requests/requests";
 
 import { returnAmountOfProducers, returnAmountOfProducts, returnAmountOfReceivers } from "./requests/getCounts";
 import { state } from "./state";
@@ -64,6 +64,11 @@ eventBus.on("headless_wallet_ready", () => {
                             case "create":
                                 // A creation of an application on the AA failed - inform the back-end so it can delete it
                                 aaCreated(body.trigger_unit, false, err.message);
+                                device.sendMessageToDevice(
+                                    "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                                    "text",
+                                    "Application: " + triggerUnit.trigger_unit + " couldn't be created: " + err.message
+                                );
                                 break;
                             case "withdraw":
                                 break;
@@ -89,14 +94,13 @@ eventBus.on("headless_wallet_ready", () => {
 
             switch(aaAction.action) {
                 case "deposit":
-                    // Check if donor is known already
+                    // Call back-end to inform of new deposit from donor
+                    aaDonorDeposited(aaAction.donor, body.trigger_unit.trigger_address);
                     // If not - add new donor using aaAction.donor and response.address
                     device.sendMessageToDevice(
                         "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
                         "text",
-                        "The donor is: " + aaAction.donor +
-                        "\nThe asset is: " + aaAction.asset +
-                        "\n and I believe the address was: " + aaAction.address
+                        "Donor: " + aaAction.donor + " added to list of known donors with wallet address: " + body.trigger_unit.trigger_address
                     );
                     break;
                 case "create":
@@ -120,6 +124,12 @@ eventBus.on("headless_wallet_ready", () => {
                     break;
                 case "confirm":
                     // Update backend, that application status should change to 3 = COMPLETED (triggering unit ID) and make sure Bytes is set to 0
+                    aaConfirmed(body.trigger_unit);
+                    device.sendMessageToDevice(
+                        "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
+                        "text",
+                        "Donation completed for application: " + body.trigger_unit
+                    );
                     break;
             }
         }
