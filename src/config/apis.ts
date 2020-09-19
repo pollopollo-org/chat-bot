@@ -63,6 +63,11 @@ export const apis = {
             path: `${basePath}/applications/aacreated`,
             method: "PUT",
             errors: {}
+        },
+        aaConfirmed: {
+            path: `${basePath}/applications/aaConfirmed`,
+            method: "PUT",
+            errors: {}
         }
     },
     donors: {
