@@ -76,6 +76,7 @@ export async function aaCreated(applicationId: string, success: boolean, result:
 /**
  * Method to inform back-end when a new deposit is made by a donor directly to the AA
  */
+// tslint:disable-next-line export-name
 export async function aaDonorDeposited(accountId: string, walletAddress: string) {
     try {
         //const endPoint = apis.applications.aaCreated;
@@ -102,10 +103,11 @@ export async function aaDonorDeposited(accountId: string, walletAddress: string)
 
 /**
  * Method to inform back-end that an applicant confirmed receipt and the chat-bot successfully updated the AA
+ * Back-end should update status to 3 (COMPLETED) for the application
  */
+// tslint:disable-next-line export-name
 export async function aaConfirmed(applicationId: string) {
     try {
-        //const endPoint = apis.applications.aaCreated;
         const endPoint = apis.applications.aaConfirmed;
 
         const response = await fetch(endPoint.path, {
