@@ -64,5 +64,12 @@ export const apis = {
             method: "PUT",
             errors: {}
         }
+    },
+    donors: {
+        aaDonorDeposited: {
+            path: `${basePath}/donors/aaDonorDeposited`,
+            method: "PUT",
+            errors: {}
+        }
     }
 };
