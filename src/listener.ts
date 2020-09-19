@@ -3,7 +3,7 @@ import express = require("express");
 import { state } from "./state";
 import { withdrawToParticipant } from "./utils/withdrawToParticipant";
 import { aaCancelApplication, aaConfirm, aaCreateApplication, aaDonate, getDonorBalance } from "./utils/aainteraction";
-import { confirmReceipt } from "utils/confirmReceipt";
+import { confirmReceipt } from "./utils/confirmReceipt";
 
 const app = express();
 app.use(bodyParser.json());
