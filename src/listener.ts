@@ -1,10 +1,9 @@
 import bodyParser = require("body-parser");
 import express = require("express");
 import { state } from "./state";
-import { Participant } from "./utils/offerContract";
-import { confirmReception } from "./utils/confirmReception";
 import { withdrawToParticipant } from "./utils/withdrawToParticipant";
-import { aaCancelApplication, aaConfirm, aaCreateApplication, aaDonate } from "./utils/aainteraction";
+import { aaCancelApplication, aaConfirm, aaCreateApplication, aaDonate, getDonorBalance } from "./utils/aainteraction";
+import { confirmReceipt } from "utils/confirmReceipt";
 
 const app = express();
 app.use(bodyParser.json());
@@ -12,7 +11,7 @@ const port = 8004;
 
 app.post("/postconfirmation", async (req, res) => {
     const id = req.body.applicationId;
-    await confirmReception(id);
+    await confirmReceipt(id);
 
     res.sendStatus(200);
 });
@@ -84,6 +83,13 @@ app.post("/aaconfirm", async (req, res) => {
             res.sendStatus(200);
         }
     });
+});
+
+app.post("/aaGetDonorBalance", async (req, res) => {
+    const aaAccount = req.body.aaAccount;
+    const balance = await getDonorBalance(aaAccount);
+    res.send(balance);
+    res.send(200);
 });
 
 const server = app.listen(port, "localhost");
