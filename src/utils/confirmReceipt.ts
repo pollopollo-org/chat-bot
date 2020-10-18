@@ -8,11 +8,10 @@ export async function confirmReceipt(applicationId: string) {
 
     await aaConfirm(applicationId, async (err, unit) => {
         if (err) {
-            console.error("Error trying to confirm receipt for application: " + applicationId +
-                "\n error message: " + err.message);
+            console.error(`Error trying to confirm receipt for application: ${applicationId} \n error message: ${err.message}`);
         } else {
-            console.error("Successfully confirmed receipt for application: " + applicationId);
-            console.error("Unit sent to the AA: " + unit);
+            console.error(`Successfully confirmed receipt for application: ${applicationId}`);
+            console.error(`Unit sent to the AA: ${unit}`);
         }
     });
 }

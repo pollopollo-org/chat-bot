@@ -66,10 +66,10 @@ export async function aaCreated(applicationId: string, success: boolean, result:
         });
 
         if (!response.ok) {
-            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of application creation on AA"})
+            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of application creation on AA"});
         }
     } catch (err) {
-        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of application creation on AA"})
+        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of application creation on AA"});
     }
 }
 
@@ -94,10 +94,10 @@ export async function aaDonorDeposited(accountId: string, walletAddress: string)
         });
 
         if (!response.ok) {
-            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of new donor deposit on AA"})
+            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of new donor deposit on AA"});
         }
     } catch (err) {
-        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of new donor deposit on AA"})
+        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of new donor deposit on AA"});
     }
 }
 
@@ -121,10 +121,10 @@ export async function aaConfirmed(applicationId: string) {
         });
 
         if (!response.ok) {
-            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of new donor deposit on AA"})
+            logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of new donor deposit on AA"});
         }
     } catch (err) {
-        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of new donor deposit on AA"})
+        logEvent(LoggableEvents.UNKNOWN, {error: "Failed to call backend to inform of result of new donor deposit on AA"});
     }
 }
 
