@@ -482,6 +482,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                 // Did a donation become stable?
                 if (contract && contract.Completed !== 1) {
                     await completeContract(contract.ApplicationId);
+                    // note: should we be checking this succeeded?
                     await updateApplicationStatus(contract.ApplicationId, ApplicationStatus.PENDING);
                     const sharedAddress = String(contract.SharedAddress);
                     const product = await getProductByApplicationId(contract.ApplicationId);
@@ -491,7 +492,7 @@ eventBus.on("my_transactions_became_stable", async (arrUnits) => {
                         "text",
                         "Your donation has now been processed. Thank you for your contribution! " +
                         `Should the receiver not pick up the product within 30 days, ` +
-                        ` you may claim the money from the contract starting with "${sharedAddress.substring(0, 4)}".`
+                        `you may claim the money from the contract starting with "${sharedAddress.substring(0, 4)}".`
                     );
 
                     device.sendMessageToDevice(
