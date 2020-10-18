@@ -50,19 +50,19 @@ export function offerContract(donor: Participant, producer: Participant, price: 
             ]],
             ["and", [
                 ["address", donor.walletAddress],
-                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30)]],
-                ["not", 
+                ["timestamp", [">", Math.round(Date.now() / 1000 + 60 * 60 * 24 * 30)]],
+                ["not",
                     ["in data feed", [
-                        [botWallet], 
-                        confirmKey, 
-                        "=", 
+                        [botWallet],
+                        confirmKey,
+                        "=",
                         "confirmed"
                     ]]
                 ]
             ]],
             ["and", [
                 ["address", botWallet],
-                ["timestamp", [">", Math.round(Date.now()/1000 + 60 * 60 * 24 * 30 * 3)]]
+                ["timestamp", [">", Math.round(Date.now() / 1000 + 60 * 60 * 24 * 30 * 3)]]
             ]],
             ["and", [
                 ["address", botWallet],
@@ -73,12 +73,12 @@ export function offerContract(donor: Participant, producer: Participant, price: 
                     "confirmed"
                 ]],
                 ["has", {
-                    what: "output", 
-                    asset: "base", 
+                    what: "output",
+                    asset: "base",
                     address: producer.walletAddress
                 }],
                 ["has one", { what: "output" }]
-            ]],
+            ]]
         ]];
 
         const assocSignersByPath = {

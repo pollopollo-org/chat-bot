@@ -1,9 +1,9 @@
 import bodyParser = require("body-parser");
 import express = require("express");
 import { state } from "./state";
-import { withdrawToParticipant } from "./utils/withdrawToParticipant";
 import { aaCancelApplication, aaConfirm, aaCreateApplication, aaDonate, getDonorBalance } from "./utils/aainteraction";
 import { confirmReceipt } from "./utils/confirmReceipt";
+import { withdrawToParticipant } from "./utils/withdrawToParticipant";
 
 const app = express();
 app.use(bodyParser.json());
@@ -21,7 +21,7 @@ app.post("/withdrawbytes", async (req, res) => {
     const wallet = req.body.walletAddress;
     const device = req.body.deviceAddress;
 
-    await withdrawToParticipant(id, { walletAddress: wallet, deviceAddress: device})
+    await withdrawToParticipant(id, { walletAddress: wallet, deviceAddress: device});
 
     res.sendStatus(200);
 });
@@ -34,7 +34,7 @@ app.post("/aacreateapplication", async (req, res) => {
     const producer = req.body.producerWalletAddress;
     const amount = req.body.amountBytes;
     const stablecoin = req.body.isStableCoin;
-    await aaCreateApplication(producer,amount,stablecoin, (err, unit) => {
+    await aaCreateApplication(producer, amount, stablecoin, (err, unit) => {
         if (err) {
             res.send(err);
             res.sendStatus(500);
