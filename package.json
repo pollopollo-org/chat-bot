@@ -6,6 +6,7 @@
   "scripts": {
     "kill": "ps aux | grep '[y]arn go' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[y]arn dev ' | awk '{print $2}' | xargs kill -9 && ps aux | grep '[n]ode --max-old-space-size=4096' | awk '{print $2}' | xargs kill -9",
     "go": "node --max-old-space-size=4096 lib/index.js",
+    "start": "node lib/index.js",
     "dev": "yarn compile && yarn go",
     "devBash": "yarn kill && yarn dev",
     "documentation": "rimraf documentation && typedoc --out ./documentation --tsconfig tsconfig.json --hideGenerator --name PolloPolloChatBot",

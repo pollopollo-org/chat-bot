@@ -1,7 +1,7 @@
 
 import { state } from "../state";
 
-const GB = 1_000_000_000; // 1 GigaByte
+const GB = 1000000000; // 1 GigaByte
 
 /**
  * Helper to convert dollars to bytes
