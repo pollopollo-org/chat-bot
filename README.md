@@ -39,14 +39,14 @@ In order to deploy to chat-bot to the server then please go through the followin
 7. Run the command `npm run start` to start the bot
 
 ### dbData.json template
-`
+```json
 {
     "host": "your.host.com",
     "user": "username",
     "password": "password",
     "database": "yourDatabase"
 }
-`
+```
 
 ## Architecture of the project
 
