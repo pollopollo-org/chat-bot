@@ -16,7 +16,7 @@ To install TypeScript run the command `npm install -g typescript` or `yarn globa
 
 ### Yarn
 
-In case you want to use yarn make sure you have it installed by running the command `npm install --global yarn`
+To use yarn make sure you have it installed by running the command `npm install --global yarn`
 
 ## Build project
 
@@ -31,12 +31,22 @@ The PolloPollo chat-bot project is written in TypeScript and hence compilation i
 
 In order to deploy to chat-bot to the server then please go through the following steps:
 
-1. make a file called dbData.json in the root of the project containing mySQL credentials
-2. Run the command `npm install` int the root of the project`
+1. Make a file called dbData.json in the root of the project containing mySQL credentials (see template below)
+2. Run the command `npm install` int the root of the project
 3. Run the command `tsc` locally in the root of the project
 4. Upload all files in the project to the a new folder called `chat-bot` *except* the folder `node_modules` and `conf.js` 
 6. Run `npm install` on the server within the `chat-bot` folder
 7. Run the command `npm run start` to start the bot
+
+### dbData.json template
+`
+{
+    "host": "your.host.com",
+    "user": "username",
+    "password": "password",
+    "database": "yourDatabase"
+}
+`
 
 ## Architecture of the project
 
