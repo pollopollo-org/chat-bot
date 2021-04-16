@@ -120,7 +120,7 @@ eventBus.on("headless_wallet_ready", () => {
                     device.sendMessageToDevice(
                         "0GUAJFYOJ3FPQJIR4CUYLNE56F7UFGCKA",
                         "text",
-                        `Donation was made from donor: {aaAction.donor}\nTo application: ${aaAction.id}`
+                        `Donation was made from donor: ${aaAction.donor}\nTo application: ${aaAction.id}`
                     );
                     // Update backend, that application status should change to 2 = PENDING
                     break;
