@@ -8,17 +8,8 @@ import { state } from "../state";
  */
 export function writeToDataFeed(dataFeed: unknown) {
     state.wallet.issueOrSelectAddressByIndex(0, 0, (botWallet) => {
-        const params = {
+        let opts = {
             paying_addresses: [botWallet],
-            outputs: [{ address: botWallet, amount: 10000 }],
-            signer: state.wallet.signer,
-            callbacks: composer.getSavingCallbacks({
-                ifNotEnoughFunds: console.error,
-                ifError: console.error,
-                ifOk: (objJoint) => {
-                    network.broadcastJoint(objJoint);
-                }
-            }),
             messages: [
                 {
                     app: "data_feed",
@@ -27,11 +18,6 @@ export function writeToDataFeed(dataFeed: unknown) {
                     payload: dataFeed
                 }
             ]
-        };
-
-        let opts = {
-            paying_addresses: params.paying_addresses,
-            messages: params.messages
         }
         state.wallet.issueChangeAddressAndSendMultiPayment(opts, (err, unit) => {
             if (err) {
