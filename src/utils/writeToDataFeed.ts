@@ -1,5 +1,4 @@
 import composer = require("ocore/composer.js");
-import device = require("ocore/device.js");
 import network = require("ocore/network.js");
 import objectHash = require("ocore/object_hash.js");
 import { state } from "../state";
@@ -9,17 +8,8 @@ import { state } from "../state";
  */
 export function writeToDataFeed(dataFeed: unknown) {
     state.wallet.issueOrSelectAddressByIndex(0, 0, (botWallet) => {
-        const params = {
+        let opts = {
             paying_addresses: [botWallet],
-            outputs: [{ address: botWallet, amount: 0 }],
-            signer: state.wallet.signer,
-            callbacks: composer.getSavingCallbacks({
-                ifNotEnoughFunds: console.error,
-                ifError: console.error,
-                ifOk: (objJoint) => {
-                    network.broadcastJoint(objJoint);
-                }
-            }),
             messages: [
                 {
                     app: "data_feed",
@@ -28,8 +18,13 @@ export function writeToDataFeed(dataFeed: unknown) {
                     payload: dataFeed
                 }
             ]
-        };
-
-        composer.composeJoint(params);
+        }
+        state.wallet.issueChangeAddressAndSendMultiPayment(opts, (err, unit) => {
+            if (err) {
+                //TODO: Implement error handling
+                return;
+            }
+            // TODO: Possibly send unit to the donor
+        });
     });
 }
