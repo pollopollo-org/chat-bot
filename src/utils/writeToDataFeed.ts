@@ -19,7 +19,7 @@ export function writeToDataFeed(dataFeed: unknown) {
                 }
             ]
         }
-        state.wallet.issueChangeAddressAndSendMultiPayment(opts, (err, unit) => {
+        state.wallet.sendMultiPayment(opts, (err, unit) => {
             if (err) {
                 //TODO: Implement error handling
                 return;
