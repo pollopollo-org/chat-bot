@@ -14,6 +14,8 @@ Furthermore typescript is required to compile the project to Node compatible Jav
 
 To install TypeScript run the command `npm install -g typescript` or `yarn global add typescript`
 
+Compiling has been tested with tsc version 4.2.3
+
 ### Yarn
 
 To use yarn make sure you have it installed by running the command `npm install --global yarn`
@@ -31,14 +33,15 @@ The PolloPollo chat-bot project is written in TypeScript and hence compilation i
 
 In order to deploy to chat-bot to the server then please go through the following steps:
 
-1. Make a file called dbData.json in the root of the project containing mySQL credentials (see template below)
-2. Run the command `npm install` int the root of the project
-3. Run the command `tsc` locally in the root of the project
-4. Upload all files in the project to the a new folder called `chat-bot` *except* the folder `node_modules` and `conf.js` 
-6. Run `npm install` on the server within the `chat-bot` folder
-7. Run the command `npm run start` to start the bot
+1. Clone the repository on the server
+2. Navigate to the recently created `chat-bot` folder
+3. Make a file called `dbData.json` in the root of the project containing mySQL credentials (see template below)
+4. Run the command `npm install` in the root of the project
+5. Run the command `tsc` in the root of the project
+6. Run `yarn go` or `npm run start` to start the bot
+7. Input the password for the chat-bot while it's outputting to the console
 
-### dbData.json template
+## dbData.json template
 ```json
 {
     "host": "your.host.com",
@@ -47,6 +50,33 @@ In order to deploy to chat-bot to the server then please go through the followin
     "database": "yourDatabase"
 }
 ```
+
+## Stopping the chat-bot
+To stop the chat-bot, run `ps aux | grep node`
+then note the process id, and run the command `kill -9 <PID>`
+
+## Testnet specifics
+If you are running the chat-bot on Obyte Testnet, create a `.env` file in the root of the project
+containing only `testnet=1`. Make sure that you haven't tried to run the chat-bot on the main network
+if you wish to run it on the testnet, as some configurations will be wrong.
+
+## Logs
+Logs for the chat-bot are located in `.pollo_log` in 
+`/home/pollopollo/.pollo_log`
+
+## Chat-bot configuration files
+The files for the chat-bot configuration can be found in
+`/home/pollopollo/.config/chat-bot`
+This directory contains the sqlite file `byteball-light.sqlite` if running on Testnet
+else the file will be called `byteball.sqlite`
+These files contain useful information, such as the chat-bot's wallet addresses, and the autonomous agent address.
+These files can be used for troubleshooting, but should remain untouched.
+
+## Further development
+To utilize the Obyte developer resources, go to : https://developer.obyte.org
+
+## Monitoring testnet transactions
+You can monitor transactions made by the chat-bot on the testnet on https://testnetexplorer.obyte.org
 
 ## Architecture of the project
 
