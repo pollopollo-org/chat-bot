@@ -21,7 +21,7 @@ app.post("/withdrawbytes", async (req, res) => {
     const wallet = req.body.walletAddress;
     const device = req.body.deviceAddress;
 
-    await withdrawToParticipant(id, { walletAddress: wallet, deviceAddress: device});
+    await withdrawToParticipant(id, { walletAddress: wallet, deviceAddress: device });
 
     res.sendStatus(200);
 });
@@ -88,8 +88,7 @@ app.post("/aaconfirm", async (req, res) => {
 app.post("/aaGetDonorBalance", async (req, res) => {
     const aaAccount = req.body.aaAccount;
     const balance = await getDonorBalance(aaAccount);
-    res.send(balance);
-    res.sendStatus(200);
+    res.send({ balance });
 });
 
 const server = app.listen(port, "localhost");
