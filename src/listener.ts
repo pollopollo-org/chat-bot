@@ -89,7 +89,7 @@ app.post("/aaGetDonorBalance", async (req, res) => {
     const aaAccount = req.body.aaAccount;
     const balance = await getDonorBalance(aaAccount);
     res.send(balance);
-    res.sendStatus(200);
+    res.send(200);
 });
 
 const server = app.listen(port, "localhost");
