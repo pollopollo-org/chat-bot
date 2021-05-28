@@ -4,7 +4,7 @@ import { state } from "../state";
 // ** explictly disable some linting rules for this file, rules are space separated **
 /* tslint:disable:max-func-body-length no-void-expression */
 
-const aaAddress = "UA2OPEG2BLTAAPZGWQ4IHEZLHOD22BBJ";
+const aaAddress = "DHBRRUMBTA2XH7L2VKEI4QHHNYOTTI5E";
 
 /**
  * Create a new application
@@ -180,9 +180,9 @@ async function callAa(aaVars, onDone) {
  */
 export async function getDonorBalance(aaAccount: string) {
 
-    const donorBalance = await AA.getAAVars(aaAddress, {var_prefix_from: `acctb_${aaAccount}`, var_prefix_to: `acctb_${aaAccount}`});
+    const donorBalance = await AA.getAAVars(aaAddress, {var_prefix_from: `donation_${aaAccount}`, var_prefix_to: `donation_${aaAccount}`});
 
-    return donorBalance[`acctb_${aaAccount}`];
+    return donorBalance[`donation_${aaAccount}`];
 }
 
 /**
