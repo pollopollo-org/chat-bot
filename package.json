@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.19.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "headless-obyte": "git+https://github.com/byteball/headless-obyte.git",
     "mariadb": "^2.3.1",
     "node-cron": "^2.0.3",
